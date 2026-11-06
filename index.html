@@ -1,1 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The World</title>
 
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: #9ed8f4;
+  touch-action: none;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+#message {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 5;
+  padding: 11px 15px;
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(20, 45, 35, 0.65);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 230px;
+  pointer-events: none;
+}
+
+#joystick {
+  position: fixed;
+  z-index: 6;
+  left: 25px;
+  bottom: 28px;
+  width: 125px;
+  height: 125px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.20);
+  border: 2px solid rgba(255,255,255,0.55);
+  display: none;
+  touch-action: none;
+}
+
+#knob {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  border: 2px solid rgba(80,120,90,0.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+#loading {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #24412d;
+  font-size: 20px;
+  background: #b9e7c0;
+  z-index: 10;
+}
+
+@media (max-width: 800px) {
+  #joystick {
+    display: block;
+  }
+
+  #message {
+    top: 10px;
+    left: 10px;
+    font-size: 12px;
+    max-width: 185px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div id="game"></div>
+
+<div id="message">
+  <strong>The World</strong><br>
+  Explore the meadow.<br>
+  Phone: joystick + drag to look.<br>
+  PC: WASD + mouse drag to look.
+</div>
+
+<div id="joystick">
+  <div id="knob"></div>
+</div>
+
+<div id="loading">Creating your world...</div>
+
+<script type="module">
+import * as THREE from
+  "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+const game = document.getElementById("game");
+const loading = document.getElementById("loading");
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9ed8f4);
+scene.fog = new THREE.Fog(0x9ed8f4, 55, 170);
+
+const camera = new THREE.PerspectiveCamera(
+  65,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  300
+);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  powerPreference: "low-power"
+});
+
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = false;
+game.appendChild(renderer.domElement);
+
+// LIGHTING
+const skyLight = new THREE.HemisphereLight(
+  0xffffff,
+  0x66834c,
+  2.1
+);
+scene.add(skyLight);
+
+const sunlight = new THREE.DirectionalLight(0xfff0d5, 1.5);
+sunlight.position.set(-25, 45, 25);
+scene.add(sunlight);
+
+// MATERIALS
+const grassMat = new THREE.MeshStandardMaterial({
+  color: 0x70bd64,
+  roughness: 1
+});
+
+const stoneMat = new THREE.MeshStandardMaterial({
+  color: 0xb5b3a9,
+  roughness: 1
+});
+
+const woodMat = new THREE.MeshStandardMaterial({
+  color: 0xa97854,
+  roughness: 1
+});
+
+const leafMat1 = new THREE.MeshStandardMaterial({
+  color: 0x3f984c,
+  roughness: 1
+});
+
+const leafMat2 = new THREE.MeshStandardMaterial({
+  color: 0x5eae5c,
+  roughness: 1
+});
+
+// GROUND
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(280, 280),
+  grassMat
+);
+
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.1;
+scene.add(ground);
+
+// SMALL GRASS PATCHES
+const patchMaterials = [
+  new THREE.MeshBasicMaterial({
+    color: 0x82c76f,
+    transparent: true,
+    opacity: 0.22
+  }),
+  new THREE.MeshBasicMaterial({
+    color: 0x4caa50,
+    transparent: true,
+    opacity: 0.18
+  })
+];
+
+for (let i = 0; i < 38; i++) {
+  const patch = new THREE.Mesh(
+    new THREE.CircleGeometry(2 + Math.random() * 3, 12),
+    patchMaterials[i % 2]
+  );
+
+  patch.rotation.x = -Math.PI / 2;
+  patch.position.set(
+    (Math.random() - 0.5) * 100,
+    -0.085,
+    (Math.random() - 0.5) * 100
+  );
+
+  scene.add(patch);
+}
+
+// STONE PATH
+for (let z = 7; z > -37; z -= 2.1) {
+  const stone = new THREE.Mesh(
+    new THREE.BoxGeometry(2.5, 0.16, 1.45),
+    stoneMat
+  );
+
+  stone.position.set(
+    Math.sin(z * 0.4) * 0.3,
+    0.02,
+    z
+  );
+
+  stone.rotation.y = Math.sin(z) * 0.035;
+  scene.add(stone);
+}
+
+// GAZEBO PLATFORM
+const platform = new THREE.Mesh(
+  new THREE.CylinderGeometry(4.4, 4.4, 0.3, 32),
+  new THREE.MeshStandardMaterial({
+    color: 0xe8dfd0,
+    roughness: 1
+  })
+);
+
+platform.position.y = 0.15;
+scene.add(platform);
+
+// GAZEBO COLUMNS
+const columnGeometry = new THREE.CylinderGeometry(
+  0.13, 0.16, 3.4, 8
+);
+
+for (let i = 0; i < 6; i++) {
+  const angle = (i / 6) * Math.PI * 2;
+  const column = new THREE.Mesh(columnGeometry, woodMat);
+
+  column.position.set(
+    Math.cos(angle) * 3,
+    2,
+    Math.sin(angle) * 3
+  );
+
+  scene.add(column);
+}
+
+// GAZEBO ROOF SUPPORT
+const roofRing = new THREE.Mesh(
+  new THREE.CylinderGeometry(4.05, 4.05, 0.18, 8),
+  woodMat
+);
+
+roofRing.position.y = 3.65;
+scene.add(roofRing);
+
+// GAZEBO ROOF
+const roof = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.25, 4.25, 1.8, 8),
+  new THREE.MeshStandardMaterial({
+    color: 0xd99caa,
+    roughness: 1
+  })
+);
+
+roof.position.y = 4.55;
+scene.add(roof);
+
+// ROOF TOP
+const roofTop = new THREE.Mesh(
+  new THREE.SphereGeometry(0.3, 10, 8),
+  new THREE.MeshStandardMaterial({ color: 0xffe5ae })
+);
+
+roofTop.position.y = 5.55;
+scene.add(roofTop);
+
+// TREES
+function makeTree(x, z, scale = 1) {
+  const tree = new THREE.Group();
+
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.22, 0.32, 2, 7),
+    woodMat
+  );
+
+  trunk.position.y = 1;
+  tree.add(trunk);
+
+  const lowerLeaves = new THREE.Mesh(
+    new THREE.ConeGeometry(1.35, 2.6, 7),
+    leafMat1
+  );
+
+  lowerLeaves.position.y = 2.6;
+  tree.add(lowerLeaves);
+
+  const middleLeaves = new THREE.Mesh(
+    new THREE.ConeGeometry(1.05, 2.2, 7),
+    leafMat2
+  );
+
+  middleLeaves.position.y = 3.6;
+  tree.add(middleLeaves);
+
+  const upperLeaves = new THREE.Mesh(
+    new THREE.ConeGeometry(0.72, 1.7, 7),
+    leafMat1
+  );
+
+  upperLeaves.position.y = 4.45;
+  tree.add(upperLeaves);
+
+  tree.position.set(x, 0, z);
+  tree.scale.setScalar(scale);
+  scene.add(tree);
+}
+
+[
+  [-9, -2, 1.0],
+  [10, -3, 1.0],
+  [-12, -12, 1.1],
+  [12, -15, 0.95],
+  [-9, -26, 1.0],
+  [9, -29, 1.1],
+  [-19, -8, 1.0],
+  [19, -22, 1.0]
+].forEach(tree => makeTree(...tree));
+
+// A FEW FLOWERS
+const flowerColors = [0xffc4d5, 0xffe08a, 0xffffff];
+
+for (let i = 0; i < 28; i++) {
+  const flower = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 6, 6),
+    new THREE.MeshStandardMaterial({
+      color: flowerColors[i % flowerColors.length]
+    })
+  );
+
+  flower.position.set(
+    (Math.random() - 0.5) * 30,
+    0.3,
+    -Math.random() * 35
+  );
+
+  scene.add(flower);
+}
+
+// PLAYER CHARACTER
+const player = new THREE.Group();
+scene.add(player);
+
+const shirt = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.37, 0.47, 0.95, 8),
+  new THREE.MeshStandardMaterial({ color: 0x658fd0 })
+);
+shirt.position.y = 1.05;
+player.add(shirt);
+
+const head = new THREE.Mesh(
+  new THREE.SphereGeometry(0.36, 12, 10),
+  new THREE.MeshStandardMaterial({ color: 0xf0c39c })
+);
+head.position.y = 1.83;
+player.add(head);
+
+const hair = new THREE.Mesh(
+  new THREE.SphereGeometry(0.365, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.48),
+  new THREE.MeshStandardMaterial({ color: 0x48342d })
+);
+hair.position.y = 1.91;
+player.add(hair);
+
+const eyeMat = new THREE.MeshBasicMaterial({ color: 0x252525 });
+
+for (const x of [-0.12, 0.12]) {
+  const eye = new THREE.Mesh(
+    new THREE.SphereGeometry(0.035, 6, 6),
+    eyeMat
+  );
+
+  eye.position.set(x, 1.86, -0.315);
+  player.add(eye);
+}
+
+const armMat = new THREE.MeshStandardMaterial({
+  color: 0xf0c39c
+});
+
+for (const x of [-0.48, 0.48]) {
+  const arm = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.13, 0.13, 0.72, 7),
+    armMat
+  );
+
+  arm.position.set(x, 1.1, 0);
+  player.add(arm);
+}
+
+const legMat = new THREE.MeshStandardMaterial({
+  color: 0x35445e
+});
+
+for (const x of [-0.19, 0.19]) {
+  const leg = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.15, 0.14, 0.65, 7),
+    legMat
+  );
+
+  leg.position.set(x, 0.34, 0);
+  player.add(leg);
+}
+
+player.position.set(0, 0, 7);
+
+// MOVEMENT SETTINGS
+const keys = {};
+let stickX = 0;
+let stickY = 0;
+let cameraYaw = 0;
+const speed = 7.2;
+
+window.addEventListener("keydown", event => {
+  const key = event.key.toLowerCase();
+  keys[key] = true;
+
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) {
+    event.preventDefault();
+  }
+});
+
+window.addEventListener("keyup", event => {
+  keys[event.key.toLowerCase()] = false;
+});
+
+window.addEventListener("blur", () => {
+  for (const key in keys) keys[key] = false;
+});
+
+// MOBILE JOYSTICK
+const joystick = document.getElementById("joystick");
+const knob = document.getElementById("knob");
+let stickPointer = null;
+
+function moveStick(event) {
+  const rect = joystick.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  let dx = event.clientX - centerX;
+  let dy = event.clientY - centerY;
+
+  const maxDistance = 38;
+  const distance = Math.hypot(dx, dy);
+
+  if (distance > maxDistance) {
+    dx = dx / distance * maxDistance;
+    dy = dy / distance * maxDistance;
+  }
+
+  stickX = dx / maxDistance;
+  stickY = -dy / maxDistance;
+
+  knob.style.left = `calc(50% + ${dx}px)`;
+  knob.style.top = `calc(50% + ${dy}px)`;
+}
+
+joystick.addEventListener("pointerdown", event => {
+  stickPointer = event.pointerId;
+  joystick.setPointerCapture(event.pointerId);
+  moveStick(event);
+});
+
+joystick.addEventListener("pointermove", event => {
+  if (event.pointerId === stickPointer) moveStick(event);
+});
+
+function releaseStick(event) {
+  if (event.pointerId !== stickPointer) return;
+
+  stickPointer = null;
+  stickX = 0;
+  stickY = 0;
+  knob.style.left = "50%";
+  knob.style.top = "50%";
+}
+
+joystick.addEventListener("pointerup", releaseStick);
+joystick.addEventListener("pointercancel", releaseStick);
+
+// CAMERA LOOK: DRAG WITH MOUSE OR FINGER
+const canvas = renderer.domElement;
+let lookPointer = null;
+let previousX = 0;
+
+canvas.addEventListener("pointerdown", event => {
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+
+  lookPointer = event.pointerId;
+  previousX = event.clientX;
+  canvas.setPointerCapture(event.pointerId);
+});
+
+canvas.addEventListener("pointermove", event => {
+  if (event.pointerId !== lookPointer) return;
+
+  const difference = event.clientX - previousX;
+  cameraYaw -= difference * 0.006;
+  previousX = event.clientX;
+});
+
+function stopLooking(event) {
+  if (event.pointerId === lookPointer) lookPointer = null;
+}
+
+canvas.addEventListener("pointerup", stopLooking);
+canvas.addEventListener("pointercancel", stopLooking);
+
+// CAMERA START POSITION
+camera.position.set(0, 5.5, 17);
+camera.lookAt(player.position.x, 1.5, player.position.z);
+
+// GAME LOOP
+const clock = new THREE.Clock();
+const target = new THREE.Vector3();
+const desiredCameraPosition = new THREE.Vector3();
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = Math.min(clock.getDelta(), 0.05);
+
+  // Keyboard and joystick input
+  let moveX = stickX;
+  let moveY = stickY;
+
+  if (keys["d"] || keys["arrowright"]) moveX += 1;
+  if (keys["a"] || keys["arrowleft"]) moveX -= 1;
+  if (keys["w"] || keys["arrowup"]) moveY += 1;
+  if (keys["s"] || keys["arrowdown"]) moveY -= 1;
+
+  const inputLength = Math.hypot(moveX, moveY);
+
+  if (inputLength > 1) {
+    moveX /= inputLength;
+    moveY /= inputLength;
+  }
+
+  // Movement follows the camera direction
+  const forwardX = -Math.sin(cameraYaw);
+  const forwardZ = -Math.cos(cameraYaw);
+  const rightX = Math.cos(cameraYaw);
+  const rightZ = -Math.sin(cameraYaw);
+
+  const dx = rightX * moveX + forwardX * moveY;
+  const dz = rightZ * moveX + forwardZ * moveY;
+
+  player.position.x += dx * speed * delta;
+  player.position.z += dz * speed * delta;
+
+  // Keep the character inside the meadow
+  player.position.x = THREE.MathUtils.clamp(
+    player.position.x, -115, 115
+  );
+
+  player.position.z = THREE.MathUtils.clamp(
+    player.position.z, -115, 115
+  );
+
+  // Face the direction of travel
+  if (Math.hypot(dx, dz) > 0.05) {
+    player.rotation.y = Math.atan2(-dx, -dz);
+  }
+
+  // Follow the player with the camera
+  target.set(
+    player.position.x,
+    player.position.y + 1.5,
+    player.position.z
+  );
+
+  desiredCameraPosition.set(
+    player.position.x + Math.sin(cameraYaw) * 10,
+    player.position.y + 5.2,
+    player.position.z + Math.cos(cameraYaw) * 10
+  );
+
+  camera.position.lerp(desiredCameraPosition, 1 - Math.pow(0.001, delta));
+  camera.lookAt(target);
+
+  renderer.render(scene, camera);
+}
+
+animate();
+loading.style.display = "none";
+
+// RESIZE FOR PHONE AND PC
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+});
+
+</script>
+</body>
+  </html>
