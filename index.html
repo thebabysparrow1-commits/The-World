@@ -4,238 +4,187 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The World</title>
-
 <style>
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
-  background: #9ed8f4;
-  touch-action: none;
+  margin: 0; width: 100%; height: 100%; overflow: hidden;
+  font-family: Arial, sans-serif; background: #9ed8f4; touch-action: none;
 }
-
-#game {
-  position: fixed;
-  inset: 0;
-}
-
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  touch-action: none;
-}
-
+#game { position: fixed; inset: 0; }
+canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 #message {
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 5;
-  padding: 11px 15px;
-  border-radius: 12px;
-  color: #fff;
-  background: rgba(20, 45, 35, 0.65);
-  font-size: 14px;
-  line-height: 1.5;
-  max-width: 230px;
-  pointer-events: none;
+  position: fixed; top: 16px; left: 16px; z-index: 5;
+  padding: 11px 15px; border-radius: 12px; color: #fff;
+  background: rgba(20, 45, 35, 0.68); font-size: 14px; line-height: 1.5;
+  max-width: 250px; pointer-events: none; display: none;
 }
-
 #joystick {
-  position: fixed;
-  z-index: 6;
-  left: 25px;
-  bottom: 28px;
-  width: 125px;
-  height: 125px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.20);
-  border: 2px solid rgba(255,255,255,0.55);
-  display: none;
-  touch-action: none;
+  position: fixed; z-index: 6; left: 25px; bottom: 28px;
+  width: 125px; height: 125px; border-radius: 50%;
+  background: rgba(255,255,255,0.20); border: 2px solid rgba(255,255,255,0.55);
+  display: none; touch-action: none;
 }
-
 #knob {
-  position: absolute;
-  width: 52px;
-  height: 52px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: rgba(255,255,255,0.85);
-  border: 2px solid rgba(80,120,90,0.5);
+  position: absolute; width: 52px; height: 52px; left: 50%; top: 50%;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: rgba(255,255,255,0.85); border: 2px solid rgba(80,120,90,0.5);
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
-
 #loading {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: #24412d;
-  font-size: 20px;
-  background: #b9e7c0;
-  z-index: 10;
+  position: fixed; inset: 0; display: grid; place-items: center;
+  color: #24412d; font-size: 20px; background: #b9e7c0; z-index: 10;
 }
-
+#joinScreen {
+  position: fixed; inset: 0; z-index: 11; display: none;
+  align-items: center; justify-content: center; padding: 22px;
+  background: rgba(17, 42, 31, 0.28); backdrop-filter: blur(5px);
+}
+#joinCard {
+  width: min(100%, 360px); padding: 26px 22px; border-radius: 22px;
+  text-align: center; color: #29442f; background: rgba(255, 252, 239, 0.96);
+  box-shadow: 0 15px 45px rgba(20, 45, 35, 0.22);
+}
+#joinCard h1 { margin: 0 0 8px; font-size: 29px; }
+#joinCard p { margin: 0 0 18px; line-height: 1.5; font-size: 14px; }
+#playerName {
+  width: 100%; padding: 13px 14px; border: 1px solid #c6d2bd;
+  border-radius: 12px; font-size: 16px; outline: none; color: #243c2b;
+  background: #fff; touch-action: auto;
+}
+#playerName:focus { border-color: #5f9c65; box-shadow: 0 0 0 3px rgba(95,156,101,0.15); }
+#enterButton {
+  width: 100%; margin-top: 12px; padding: 14px; border: 0; border-radius: 12px;
+  color: white; background: #518d58; font-size: 16px; font-weight: bold;
+  cursor: pointer; touch-action: manipulation;
+}
+#enterButton:disabled { opacity: 0.65; cursor: wait; }
+#joinStatus { min-height: 20px; margin: 12px 0 0 !important; color: #637568; font-size: 12px !important; }
+#joinHint { margin-top: 10px !important; margin-bottom: 0 !important; font-size: 11px !important; color: #758174; }
 @media (max-width: 800px) {
-  #joystick {
-    display: block;
-  }
-
-  #message {
-    top: 10px;
-    left: 10px;
-    font-size: 12px;
-    max-width: 185px;
-  }
+  #joystick { display: block; }
+  #message { top: 10px; left: 10px; font-size: 12px; max-width: 205px; }
 }
 </style>
 </head>
-
 <body>
 <div id="game"></div>
-
 <div id="message">
   <strong>The World</strong><br>
-  Explore the meadow.<br>
+  <span id="playerStatus">Connecting...</span><br>
   Phone: joystick + drag to look.<br>
   PC: WASD + mouse drag to look.
 </div>
-
-<div id="joystick">
-  <div id="knob"></div>
+<div id="joystick"><div id="knob"></div></div>
+<div id="loading">Creating your world...</div>
+<div id="joinScreen">
+  <div id="joinCard">
+    <h1>The World</h1>
+    <p>A little world made for two. Choose a name to show above your character, or leave it blank.</p>
+    <input id="playerName" type="text" maxlength="20" autocomplete="nickname" placeholder="Your name (optional)">
+    <button id="enterButton" type="button">Enter the world</button>
+    <p id="joinStatus" role="status">Getting the world ready...</p>
+    <p id="joinHint">No account or manual sign-in needed.</p>
+  </div>
 </div>
 
-<div id="loading">Creating your world...</div>
-
 <script type="module">
-import * as THREE from
-  "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  getDatabase, ref, set, onDisconnect,
+  onChildAdded, onChildChanged, onChildRemoved
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
 const game = document.getElementById("game");
 const loading = document.getElementById("loading");
+const joinScreen = document.getElementById("joinScreen");
+const joinButton = document.getElementById("enterButton");
+const nameInput = document.getElementById("playerName");
+const joinStatus = document.getElementById("joinStatus");
+const playerStatus = document.getElementById("playerStatus");
 
+// Firebase web-app configuration from The World project.
+const firebaseConfig = {
+  apiKey: "AIzaSyB6YcO7f975xoSQUg65fO831zOyma2xO6g",
+  authDomain: "the-world-32842.firebaseapp.com",
+  databaseURL: "https://the-world-32842-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "the-world-32842",
+  storageBucket: "the-world-32842.firebasestorage.app",
+  messagingSenderId: "589427112334",
+  appId: "1:589427112334:web:09c380bc59f9a49dfe4cdf"
+};
+
+const ROOM_ID = "birthday-meadow";
+let auth;
+let database;
+let playersRef;
+let myPlayerRef;
+let myUid = null;
+let displayName = "";
+let joined = false;
+let writeInProgress = false;
+let lastNetworkUpdate = 0;
+const remotePlayers = new Map();
+
+try {
+  const firebaseApp = initializeApp(firebaseConfig);
+  auth = getAuth(firebaseApp);
+  database = getDatabase(firebaseApp);
+  playersRef = ref(database, `rooms/${ROOM_ID}/players`);
+} catch (error) {
+  console.error("Firebase setup error:", error);
+  joinStatus.textContent = "The connection could not start. Please refresh the page.";
+}
+
+// WORLD SETUP
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9ed8f4);
 scene.fog = new THREE.Fog(0x9ed8f4, 55, 170);
 
-const camera = new THREE.PerspectiveCamera(
-  65,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  300
-);
-
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  powerPreference: "low-power"
-});
-
+const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 300);
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = false;
-game.appendChild(renderer.domElement);
+ game.appendChild(renderer.domElement);
 
 // LIGHTING
-const skyLight = new THREE.HemisphereLight(
-  0xffffff,
-  0x66834c,
-  2.1
-);
-scene.add(skyLight);
-
+scene.add(new THREE.HemisphereLight(0xffffff, 0x66834c, 2.1));
 const sunlight = new THREE.DirectionalLight(0xfff0d5, 1.5);
 sunlight.position.set(-25, 45, 25);
 scene.add(sunlight);
 
 // MATERIALS
-const grassMat = new THREE.MeshStandardMaterial({
-  color: 0x70bd64,
-  roughness: 1
-});
-
-const stoneMat = new THREE.MeshStandardMaterial({
-  color: 0xb5b3a9,
-  roughness: 1
-});
-
-const woodMat = new THREE.MeshStandardMaterial({
-  color: 0xa97854,
-  roughness: 1
-});
-
-const leafMat1 = new THREE.MeshStandardMaterial({
-  color: 0x3f984c,
-  roughness: 1
-});
-
-const leafMat2 = new THREE.MeshStandardMaterial({
-  color: 0x5eae5c,
-  roughness: 1
-});
+const grassMat = new THREE.MeshStandardMaterial({ color: 0x70bd64, roughness: 1 });
+const stoneMat = new THREE.MeshStandardMaterial({ color: 0xb5b3a9, roughness: 1 });
+const woodMat = new THREE.MeshStandardMaterial({ color: 0xa97854, roughness: 1 });
+const leafMat1 = new THREE.MeshStandardMaterial({ color: 0x3f984c, roughness: 1 });
+const leafMat2 = new THREE.MeshStandardMaterial({ color: 0x5eae5c, roughness: 1 });
 
 // GROUND
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(280, 280),
-  grassMat
-);
-
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(280, 280), grassMat);
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -0.1;
 scene.add(ground);
 
 // SMALL GRASS PATCHES
 const patchMaterials = [
-  new THREE.MeshBasicMaterial({
-    color: 0x82c76f,
-    transparent: true,
-    opacity: 0.22
-  }),
-  new THREE.MeshBasicMaterial({
-    color: 0x4caa50,
-    transparent: true,
-    opacity: 0.18
-  })
+  new THREE.MeshBasicMaterial({ color: 0x82c76f, transparent: true, opacity: 0.22 }),
+  new THREE.MeshBasicMaterial({ color: 0x4caa50, transparent: true, opacity: 0.18 })
 ];
-
 for (let i = 0; i < 38; i++) {
-  const patch = new THREE.Mesh(
-    new THREE.CircleGeometry(2 + Math.random() * 3, 12),
-    patchMaterials[i % 2]
-  );
-
+  const patch = new THREE.Mesh(new THREE.CircleGeometry(2 + Math.random() * 3, 12), patchMaterials[i % 2]);
   patch.rotation.x = -Math.PI / 2;
-  patch.position.set(
-    (Math.random() - 0.5) * 100,
-    -0.085,
-    (Math.random() - 0.5) * 100
-  );
-
+  patch.position.set((Math.random() - 0.5) * 100, -0.085, (Math.random() - 0.5) * 100);
   scene.add(patch);
 }
 
 // STONE PATH
 for (let z = 7; z > -37; z -= 2.1) {
-  const stone = new THREE.Mesh(
-    new THREE.BoxGeometry(2.5, 0.16, 1.45),
-    stoneMat
-  );
-
-  stone.position.set(
-    Math.sin(z * 0.4) * 0.3,
-    0.02,
-    z
-  );
-
+  const stone = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.16, 1.45), stoneMat);
+  stone.position.set(Math.sin(z * 0.4) * 0.3, 0.02, z);
   stone.rotation.y = Math.sin(z) * 0.035;
   scene.add(stone);
 }
@@ -243,51 +192,30 @@ for (let z = 7; z > -37; z -= 2.1) {
 // GAZEBO PLATFORM
 const platform = new THREE.Mesh(
   new THREE.CylinderGeometry(4.4, 4.4, 0.3, 32),
-  new THREE.MeshStandardMaterial({
-    color: 0xe8dfd0,
-    roughness: 1
-  })
+  new THREE.MeshStandardMaterial({ color: 0xe8dfd0, roughness: 1 })
 );
-
 platform.position.y = 0.15;
 scene.add(platform);
 
 // GAZEBO COLUMNS
-const columnGeometry = new THREE.CylinderGeometry(
-  0.13, 0.16, 3.4, 8
-);
-
+const columnGeometry = new THREE.CylinderGeometry(0.13, 0.16, 3.4, 8);
 for (let i = 0; i < 6; i++) {
   const angle = (i / 6) * Math.PI * 2;
   const column = new THREE.Mesh(columnGeometry, woodMat);
-
-  column.position.set(
-    Math.cos(angle) * 3,
-    2,
-    Math.sin(angle) * 3
-  );
-
+  column.position.set(Math.cos(angle) * 3, 2, Math.sin(angle) * 3);
   scene.add(column);
 }
 
 // GAZEBO ROOF SUPPORT
-const roofRing = new THREE.Mesh(
-  new THREE.CylinderGeometry(4.05, 4.05, 0.18, 8),
-  woodMat
-);
-
+const roofRing = new THREE.Mesh(new THREE.CylinderGeometry(4.05, 4.05, 0.18, 8), woodMat);
 roofRing.position.y = 3.65;
 scene.add(roofRing);
 
 // GAZEBO ROOF
 const roof = new THREE.Mesh(
   new THREE.CylinderGeometry(0.25, 4.25, 1.8, 8),
-  new THREE.MeshStandardMaterial({
-    color: 0xd99caa,
-    roughness: 1
-  })
+  new THREE.MeshStandardMaterial({ color: 0xd99caa, roughness: 1 })
 );
-
 roof.position.y = 4.55;
 scene.add(roof);
 
@@ -296,147 +224,134 @@ const roofTop = new THREE.Mesh(
   new THREE.SphereGeometry(0.3, 10, 8),
   new THREE.MeshStandardMaterial({ color: 0xffe5ae })
 );
-
 roofTop.position.y = 5.55;
 scene.add(roofTop);
 
 // TREES
 function makeTree(x, z, scale = 1) {
   const tree = new THREE.Group();
-
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.22, 0.32, 2, 7),
-    woodMat
-  );
-
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.32, 2, 7), woodMat);
   trunk.position.y = 1;
   tree.add(trunk);
-
-  const lowerLeaves = new THREE.Mesh(
-    new THREE.ConeGeometry(1.35, 2.6, 7),
-    leafMat1
-  );
-
+  const lowerLeaves = new THREE.Mesh(new THREE.ConeGeometry(1.35, 2.6, 7), leafMat1);
   lowerLeaves.position.y = 2.6;
   tree.add(lowerLeaves);
-
-  const middleLeaves = new THREE.Mesh(
-    new THREE.ConeGeometry(1.05, 2.2, 7),
-    leafMat2
-  );
-
+  const middleLeaves = new THREE.Mesh(new THREE.ConeGeometry(1.05, 2.2, 7), leafMat2);
   middleLeaves.position.y = 3.6;
   tree.add(middleLeaves);
-
-  const upperLeaves = new THREE.Mesh(
-    new THREE.ConeGeometry(0.72, 1.7, 7),
-    leafMat1
-  );
-
+  const upperLeaves = new THREE.Mesh(new THREE.ConeGeometry(0.72, 1.7, 7), leafMat1);
   upperLeaves.position.y = 4.45;
   tree.add(upperLeaves);
-
   tree.position.set(x, 0, z);
   tree.scale.setScalar(scale);
   scene.add(tree);
 }
-
 [
-  [-9, -2, 1.0],
-  [10, -3, 1.0],
-  [-12, -12, 1.1],
-  [12, -15, 0.95],
-  [-9, -26, 1.0],
-  [9, -29, 1.1],
-  [-19, -8, 1.0],
-  [19, -22, 1.0]
+  [-9, -2, 1.0], [10, -3, 1.0], [-12, -12, 1.1], [12, -15, 0.95],
+  [-9, -26, 1.0], [9, -29, 1.1], [-19, -8, 1.0], [19, -22, 1.0]
 ].forEach(tree => makeTree(...tree));
 
 // A FEW FLOWERS
 const flowerColors = [0xffc4d5, 0xffe08a, 0xffffff];
-
 for (let i = 0; i < 28; i++) {
   const flower = new THREE.Mesh(
     new THREE.SphereGeometry(0.12, 6, 6),
-    new THREE.MeshStandardMaterial({
-      color: flowerColors[i % flowerColors.length]
-    })
+    new THREE.MeshStandardMaterial({ color: flowerColors[i % flowerColors.length] })
   );
-
-  flower.position.set(
-    (Math.random() - 0.5) * 30,
-    0.3,
-    -Math.random() * 35
-  );
-
+  flower.position.set((Math.random() - 0.5) * 30, 0.3, -Math.random() * 35);
   scene.add(flower);
 }
 
-// PLAYER CHARACTER
-const player = new THREE.Group();
+// CHARACTER CREATOR (used for both you and your friend)
+function createCharacter(shirtColor) {
+  const group = new THREE.Group();
+  const shirt = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.37, 0.47, 0.95, 8),
+    new THREE.MeshStandardMaterial({ color: shirtColor })
+  );
+  shirt.position.y = 1.05;
+  group.add(shirt);
+
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.36, 12, 10),
+    new THREE.MeshStandardMaterial({ color: 0xf0c39c })
+  );
+  head.position.y = 1.83;
+  group.add(head);
+
+  const hair = new THREE.Mesh(
+    new THREE.SphereGeometry(0.365, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.48),
+    new THREE.MeshStandardMaterial({ color: 0x48342d })
+  );
+  hair.position.y = 1.91;
+  group.add(hair);
+
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x252525 });
+  for (const x of [-0.12, 0.12]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), eyeMat);
+    eye.position.set(x, 1.86, -0.315);
+    group.add(eye);
+  }
+
+  const armMat = new THREE.MeshStandardMaterial({ color: 0xf0c39c });
+  for (const x of [-0.48, 0.48]) {
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.72, 7), armMat);
+    arm.position.set(x, 1.1, 0);
+    group.add(arm);
+  }
+
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x35445e });
+  for (const x of [-0.19, 0.19]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.14, 0.65, 7), legMat);
+    leg.position.set(x, 0.34, 0);
+    group.add(leg);
+  }
+
+  // Name label floats over the character. A blank name hides it.
+  const labelCanvas = document.createElement("canvas");
+  labelCanvas.width = 512;
+  labelCanvas.height = 128;
+  const labelContext = labelCanvas.getContext("2d");
+  const labelTexture = new THREE.CanvasTexture(labelCanvas);
+  const labelMaterial = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, depthWrite: false });
+  const labelSprite = new THREE.Sprite(labelMaterial);
+  labelSprite.position.y = 2.55;
+  labelSprite.scale.set(2.15, 0.54, 1);
+  labelSprite.visible = false;
+  group.add(labelSprite);
+
+  function setName(name) {
+    const safeName = String(name || "").trim().slice(0, 20);
+    labelContext.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
+    if (!safeName) {
+      labelSprite.visible = false;
+      labelTexture.needsUpdate = true;
+      return;
+    }
+    labelContext.fillStyle = "rgba(25, 42, 30, 0.72)";
+    labelContext.beginPath();
+    if (typeof labelContext.roundRect === "function") {
+      labelContext.roundRect(22, 18, 468, 92, 28);
+    } else {
+      labelContext.rect(22, 18, 468, 92);
+    }
+    labelContext.fill();
+    labelContext.fillStyle = "#ffffff";
+    labelContext.font = "bold 48px Arial";
+    labelContext.textAlign = "center";
+    labelContext.textBaseline = "middle";
+    labelContext.fillText(safeName, 256, 65, 430);
+    labelSprite.visible = true;
+    labelTexture.needsUpdate = true;
+  }
+
+  return { group, setName };
+}
+
+// LOCAL PLAYER
+const localCharacter = createCharacter(0x658fd0);
+const player = localCharacter.group;
 scene.add(player);
-
-const shirt = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.37, 0.47, 0.95, 8),
-  new THREE.MeshStandardMaterial({ color: 0x658fd0 })
-);
-shirt.position.y = 1.05;
-player.add(shirt);
-
-const head = new THREE.Mesh(
-  new THREE.SphereGeometry(0.36, 12, 10),
-  new THREE.MeshStandardMaterial({ color: 0xf0c39c })
-);
-head.position.y = 1.83;
-player.add(head);
-
-const hair = new THREE.Mesh(
-  new THREE.SphereGeometry(0.365, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.48),
-  new THREE.MeshStandardMaterial({ color: 0x48342d })
-);
-hair.position.y = 1.91;
-player.add(hair);
-
-const eyeMat = new THREE.MeshBasicMaterial({ color: 0x252525 });
-
-for (const x of [-0.12, 0.12]) {
-  const eye = new THREE.Mesh(
-    new THREE.SphereGeometry(0.035, 6, 6),
-    eyeMat
-  );
-
-  eye.position.set(x, 1.86, -0.315);
-  player.add(eye);
-}
-
-const armMat = new THREE.MeshStandardMaterial({
-  color: 0xf0c39c
-});
-
-for (const x of [-0.48, 0.48]) {
-  const arm = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.13, 0.13, 0.72, 7),
-    armMat
-  );
-
-  arm.position.set(x, 1.1, 0);
-  player.add(arm);
-}
-
-const legMat = new THREE.MeshStandardMaterial({
-  color: 0x35445e
-});
-
-for (const x of [-0.19, 0.19]) {
-  const leg = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.15, 0.14, 0.65, 7),
-    legMat
-  );
-
-  leg.position.set(x, 0.34, 0);
-  player.add(leg);
-}
-
 player.position.set(0, 0, 7);
 
 // MOVEMENT SETTINGS
@@ -449,68 +364,43 @@ const speed = 7.2;
 window.addEventListener("keydown", event => {
   const key = event.key.toLowerCase();
   keys[key] = true;
-
-  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) {
-    event.preventDefault();
-  }
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
 });
-
-window.addEventListener("keyup", event => {
-  keys[event.key.toLowerCase()] = false;
-});
-
-window.addEventListener("blur", () => {
-  for (const key in keys) keys[key] = false;
-});
+window.addEventListener("keyup", event => { keys[event.key.toLowerCase()] = false; });
+window.addEventListener("blur", () => { for (const key in keys) keys[key] = false; });
 
 // MOBILE JOYSTICK
 const joystick = document.getElementById("joystick");
 const knob = document.getElementById("knob");
 let stickPointer = null;
-
 function moveStick(event) {
   const rect = joystick.getBoundingClientRect();
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
-
   let dx = event.clientX - centerX;
   let dy = event.clientY - centerY;
-
   const maxDistance = 38;
   const distance = Math.hypot(dx, dy);
-
-  if (distance > maxDistance) {
-    dx = dx / distance * maxDistance;
-    dy = dy / distance * maxDistance;
-  }
-
+  if (distance > maxDistance) { dx = dx / distance * maxDistance; dy = dy / distance * maxDistance; }
   stickX = dx / maxDistance;
   stickY = -dy / maxDistance;
-
   knob.style.left = `calc(50% + ${dx}px)`;
   knob.style.top = `calc(50% + ${dy}px)`;
 }
-
 joystick.addEventListener("pointerdown", event => {
+  if (!joined) return;
   stickPointer = event.pointerId;
   joystick.setPointerCapture(event.pointerId);
   moveStick(event);
 });
-
 joystick.addEventListener("pointermove", event => {
   if (event.pointerId === stickPointer) moveStick(event);
 });
-
 function releaseStick(event) {
   if (event.pointerId !== stickPointer) return;
-
-  stickPointer = null;
-  stickX = 0;
-  stickY = 0;
-  knob.style.left = "50%";
-  knob.style.top = "50%";
+  stickPointer = null; stickX = 0; stickY = 0;
+  knob.style.left = "50%"; knob.style.top = "50%";
 }
-
 joystick.addEventListener("pointerup", releaseStick);
 joystick.addEventListener("pointercancel", releaseStick);
 
@@ -518,27 +408,20 @@ joystick.addEventListener("pointercancel", releaseStick);
 const canvas = renderer.domElement;
 let lookPointer = null;
 let previousX = 0;
-
 canvas.addEventListener("pointerdown", event => {
+  if (!joined) return;
   if (event.pointerType === "mouse" && event.button !== 0) return;
-
   lookPointer = event.pointerId;
   previousX = event.clientX;
   canvas.setPointerCapture(event.pointerId);
 });
-
 canvas.addEventListener("pointermove", event => {
   if (event.pointerId !== lookPointer) return;
-
   const difference = event.clientX - previousX;
   cameraYaw -= difference * 0.006;
   previousX = event.clientX;
 });
-
-function stopLooking(event) {
-  if (event.pointerId === lookPointer) lookPointer = null;
-}
-
+function stopLooking(event) { if (event.pointerId === lookPointer) lookPointer = null; }
 canvas.addEventListener("pointerup", stopLooking);
 canvas.addEventListener("pointercancel", stopLooking);
 
@@ -546,89 +429,124 @@ canvas.addEventListener("pointercancel", stopLooking);
 camera.position.set(0, 5.5, 17);
 camera.lookAt(player.position.x, 1.5, player.position.z);
 
-// GAME LOOP
-const clock = new THREE.Clock();
-const target = new THREE.Vector3();
-const desiredCameraPosition = new THREE.Vector3();
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  const delta = Math.min(clock.getDelta(), 0.05);
-
-  // Keyboard and joystick input
-  let moveX = stickX;
-  let moveY = stickY;
-
-  if (keys["d"] || keys["arrowright"]) moveX += 1;
-  if (keys["a"] || keys["arrowleft"]) moveX -= 1;
-  if (keys["w"] || keys["arrowup"]) moveY += 1;
-  if (keys["s"] || keys["arrowdown"]) moveY -= 1;
-
-  const inputLength = Math.hypot(moveX, moveY);
-
-  if (inputLength > 1) {
-    moveX /= inputLength;
-    moveY /= inputLength;
+// MULTIPLAYER HELPERS
+function updatePlayerStatus() {
+  const count = 1 + remotePlayers.size;
+  if (count === 1) {
+    playerStatus.textContent = "Connected · waiting for your friend...";
+  } else if (count === 2) {
+    playerStatus.textContent = "You're together! ✨";
+  } else {
+    playerStatus.textContent = `${count} players are here.`;
   }
-
-  // Movement follows the camera direction
-  const forwardX = -Math.sin(cameraYaw);
-  const forwardZ = -Math.cos(cameraYaw);
-  const rightX = Math.cos(cameraYaw);
-  const rightZ = -Math.sin(cameraYaw);
-
-  const dx = rightX * moveX + forwardX * moveY;
-  const dz = rightZ * moveX + forwardZ * moveY;
-
-  player.position.x += dx * speed * delta;
-  player.position.z += dz * speed * delta;
-
-  // Keep the character inside the meadow
-  player.position.x = THREE.MathUtils.clamp(
-    player.position.x, -115, 115
-  );
-
-  player.position.z = THREE.MathUtils.clamp(
-    player.position.z, -115, 115
-  );
-
-  // Face the direction of travel
-  if (Math.hypot(dx, dz) > 0.05) {
-    player.rotation.y = Math.atan2(-dx, -dz);
-  }
-
-  // Follow the player with the camera
-  target.set(
-    player.position.x,
-    player.position.y + 1.5,
-    player.position.z
-  );
-
-  desiredCameraPosition.set(
-    player.position.x + Math.sin(cameraYaw) * 10,
-    player.position.y + 5.2,
-    player.position.z + Math.cos(cameraYaw) * 10
-  );
-
-  camera.position.lerp(desiredCameraPosition, 1 - Math.pow(0.001, delta));
-  camera.lookAt(target);
-
-  renderer.render(scene, camera);
 }
 
-animate();
-loading.style.display = "none";
+function validPlayerData(data) {
+  return data && Number.isFinite(data.x) && Number.isFinite(data.z) &&
+    Number.isFinite(data.rotationY) && Number.isFinite(data.updatedAt);
+}
 
-// RESIZE FOR PHONE AND PC
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+function shirtColorFor(uid) {
+  const colors = [0xd47ca4, 0x8d79cc, 0xe0a04e, 0x4aaca5, 0xc56f61];
+  let hash = 0;
+  for (let i = 0; i < uid.length; i++) hash = (hash * 31 + uid.charCodeAt(i)) >>> 0;
+  return colors[hash % colors.length];
+}
 
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-});
+function upsertRemotePlayer(uid, data) {
+  if (uid === myUid || !validPlayerData(data)) return;
+  let remote = remotePlayers.get(uid);
+  if (!remote) {
+    const character = createCharacter(shirtColorFor(uid));
+    scene.add(character.group);
+    character.group.position.set(data.x, 0, data.z);
+    character.group.rotation.y = data.rotationY;
+    remote = {
+      group: character.group,
+      setName: character.setName,
+      targetX: data.x,
+      targetZ: data.z,
+      targetRotationY: data.rotationY
+    };
+    remotePlayers.set(uid, remote);
+  }
+  remote.targetX = THREE.MathUtils.clamp(data.x, -115, 115);
+  remote.targetZ = THREE.MathUtils.clamp(data.z, -115, 115);
+  remote.targetRotationY = data.rotationY;
+  remote.setName(typeof data.name === "string" ? data.name : "");
+  updatePlayerStatus();
+}
 
-</script>
-</body>
-  </html>
+function removeRemotePlayer(uid) {
+  const remote = remotePlayers.get(uid);
+  if (!remote) return;
+  scene.remove(remote.group);
+  remote.group.traverse(object => {
+    if (object.geometry) object.geometry.dispose();
+    if (object.material) {
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      for (const material of materials) {
+        if (material.map) material.map.dispose();
+        material.dispose();
+      }
+    }
+  });
+  remotePlayers.delete(uid);
+  updatePlayerStatus();
+}
+
+function subscribeToOtherPlayers() {
+  onChildAdded(playersRef, snapshot => upsertRemotePlayer(snapshot.key, snapshot.val()), error => {
+    console.error("Player listener error:", error);
+    joinStatus.textContent = "Could not read the room. Check the database rules.";
+  });
+  onChildChanged(playersRef, snapshot => upsertRemotePlayer(snapshot.key, snapshot.val()), error => {
+    console.error("Player update listener error:", error);
+  });
+  onChildRemoved(playersRef, snapshot => removeRemotePlayer(snapshot.key), error => {
+    console.error("Player removal listener error:", error);
+  });
+}
+
+function currentPlayerData() {
+  const data = {
+    x: Number(player.position.x.toFixed(3)),
+    z: Number(player.position.z.toFixed(3)),
+    rotationY: Number(player.rotation.y.toFixed(3)),
+    updatedAt: Date.now()
+  };
+  if (displayName) data.name = displayName;
+  return data;
+}
+
+async function publishPlayerState(force = false) {
+  if (!joined || !myPlayerRef || writeInProgress) return;
+  const now = Date.now();
+  if (!force && now - lastNetworkUpdate < 140) return;
+  lastNetworkUpdate = now;
+  writeInProgress = true;
+  try {
+    await set(myPlayerRef, currentPlayerData());
+  } catch (error) {
+    console.error("Could not update player:", error);
+    playerStatus.textContent = "Connection interrupted. Trying again...";
+  } finally {
+    writeInProgress = false;
+  }
+}
+
+function explainJoinError(error) {
+  console.error("Join error:", error);
+  if (error && error.code === "auth/unauthorized-domain") {
+    return "Firebase needs this website added to Authentication's Authorized domains. We'll fix that next.";
+  }
+  if (error && (error.code === "PERMISSION_DENIED" || error.code === "database/permission-denied")) {
+    return "Firebase denied access. We'll check the Realtime Database rules.";
+  }
+  if (error && error.code === "auth/network-request-failed") {
+    return "Network connection failed. Check your internet and try again.";
+  }
+  return "Couldn't connect right now. Check your internet and try again.";
+}
+
+async function enterW
