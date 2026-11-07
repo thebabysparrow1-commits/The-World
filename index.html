@@ -16,7 +16,7 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; }
   position: fixed; top: 16px; left: 16px; z-index: 5;
   padding: 11px 15px; border-radius: 12px; color: #fff;
   background: rgba(20, 45, 35, 0.68); font-size: 14px; line-height: 1.5;
-  max-width: 250px; pointer-events: none; display: none;
+  max-width: 270px; pointer-events: none; display: none;
 }
 #joystick {
   position: fixed; z-index: 6; left: 25px; bottom: 28px;
@@ -30,6 +30,16 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; }
   background: rgba(255,255,255,0.85); border: 2px solid rgba(80,120,90,0.5);
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
+#jumpButton {
+  position: fixed; z-index: 7; right: 27px; bottom: 43px;
+  width: 82px; height: 82px; border: 2px solid rgba(255,255,255,0.75);
+  border-radius: 50%; display: none; align-items: center; justify-content: center;
+  color: #34513b; background: rgba(255,255,255,0.78);
+  box-shadow: 0 4px 14px rgba(25,50,35,0.18);
+  font-size: 14px; font-weight: 800; letter-spacing: 0.5px;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+#jumpButton:active { transform: scale(0.96); background: rgba(255,255,255,0.95); }
 #loading {
   position: fixed; inset: 0; display: grid; place-items: center;
   color: #24412d; font-size: 20px; background: #b9e7c0; z-index: 10;
@@ -71,10 +81,11 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 <div id="message">
   <strong>The World</strong><br>
   <span id="playerStatus">Connecting...</span><br>
-  Phone: joystick + drag to look.<br>
-  PC: WASD + mouse drag to look.
+  Phone: joystick + drag to look + Jump.<br>
+  PC: WASD + mouse drag to look + Space.
 </div>
 <div id="joystick"><div id="knob"></div></div>
+<button id="jumpButton" type="button" aria-label="Jump">JUMP</button>
 <div id="loading">Creating your world...</div>
 <div id="joinScreen">
   <div id="joinCard">
@@ -86,9 +97,16 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; }
     <p id="joinHint">No account or manual sign-in needed.</p>
   </div>
 </div>
-
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
 <script type="module">
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { RoundedBoxGeometry } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
@@ -103,6 +121,7 @@ const joinButton = document.getElementById("enterButton");
 const nameInput = document.getElementById("playerName");
 const joinStatus = document.getElementById("joinStatus");
 const playerStatus = document.getElementById("playerStatus");
+const jumpButton = document.getElementById("jumpButton");
 
 // Firebase web-app configuration from The World project.
 const firebaseConfig = {
@@ -114,7 +133,6 @@ const firebaseConfig = {
   messagingSenderId: "589427112334",
   appId: "1:589427112334:web:09c380bc59f9a49dfe4cdf"
 };
-
 const ROOM_ID = "birthday-meadow";
 let auth;
 let database;
@@ -141,14 +159,13 @@ try {
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9ed8f4);
 scene.fog = new THREE.Fog(0x9ed8f4, 55, 170);
-
 const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 300);
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = false;
- game.appendChild(renderer.domElement);
+game.appendChild(renderer.domElement);
 
 // LIGHTING
 scene.add(new THREE.HemisphereLight(0xffffff, 0x66834c, 2.1));
@@ -262,52 +279,81 @@ for (let i = 0; i < 28; i++) {
   scene.add(flower);
 }
 
-// CHARACTER CREATOR (used for both you and your friend)
-function createCharacter(shirtColor) {
+// DEFAULT CHARACTER: the same clean, rounded block-style avatar for every player.
+function createCharacter() {
   const group = new THREE.Group();
-  const shirt = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.37, 0.47, 0.95, 8),
-    new THREE.MeshStandardMaterial({ color: shirtColor })
-  );
-  shirt.position.y = 1.05;
-  group.add(shirt);
+  const animatedBody = new THREE.Group();
+  group.add(animatedBody);
 
-  const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.36, 12, 10),
-    new THREE.MeshStandardMaterial({ color: 0xf0c39c })
-  );
-  head.position.y = 1.83;
-  group.add(head);
+  // Everyone receives the same starter colours. Outfit customization comes later.
+  const skinMat = new THREE.MeshStandardMaterial({ color: 0xf0c9a7, roughness: 0.82 });
+  const shirtMat = new THREE.MeshStandardMaterial({ color: 0xd7e6dc, roughness: 0.9 });
+  const pantsMat = new THREE.MeshStandardMaterial({ color: 0x45546a, roughness: 0.95 });
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0xf3f0e8, roughness: 0.85 });
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x292b2b, roughness: 0.6 });
+  const mouthMat = new THREE.MeshStandardMaterial({ color: 0x9b625b, roughness: 0.8 });
 
-  const hair = new THREE.Mesh(
-    new THREE.SphereGeometry(0.365, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.48),
-    new THREE.MeshStandardMaterial({ color: 0x48342d })
-  );
-  hair.position.y = 1.91;
-  group.add(hair);
-
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x252525 });
-  for (const x of [-0.12, 0.12]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), eyeMat);
-    eye.position.set(x, 1.86, -0.315);
-    group.add(eye);
+  function roundedPart(parent, width, height, depth, material, position, radius = 0.07) {
+    const mesh = new THREE.Mesh(
+      new RoundedBoxGeometry(width, height, depth, 3, radius),
+      material
+    );
+    mesh.position.set(position.x, position.y, position.z);
+    parent.add(mesh);
+    return mesh;
   }
 
-  const armMat = new THREE.MeshStandardMaterial({ color: 0xf0c39c });
-  for (const x of [-0.48, 0.48]) {
-    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.72, 7), armMat);
-    arm.position.set(x, 1.1, 0);
-    group.add(arm);
-  }
+  // Neck and softly rounded torso.
+  roundedPart(animatedBody, 0.24, 0.22, 0.24, skinMat, { x: 0, y: 1.61, z: 0 }, 0.06);
+  roundedPart(animatedBody, 0.88, 0.91, 0.48, shirtMat, { x: 0, y: 1.18, z: 0 }, 0.10);
 
-  const legMat = new THREE.MeshStandardMaterial({ color: 0x35445e });
-  for (const x of [-0.19, 0.19]) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.14, 0.65, 7), legMat);
-    leg.position.set(x, 0.34, 0);
-    group.add(leg);
-  }
+  // Head: a rounded cube, deliberately left without hair or accessories.
+  roundedPart(animatedBody, 0.78, 0.76, 0.72, skinMat, { x: 0, y: 2.08, z: 0 }, 0.16);
 
-  // Name label floats over the character. A blank name hides it.
+  // Simple friendly face on the front (-Z) of the head.
+  for (const x of [-0.145, 0.145]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), eyeMat);
+    eye.scale.set(0.82, 1.12, 0.42);
+    eye.position.set(x, 2.13, -0.357);
+    animatedBody.add(eye);
+  }
+  const smileCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.085, 1.94, -0.362),
+    new THREE.Vector3(-0.045, 1.915, -0.369),
+    new THREE.Vector3(0, 1.91, -0.371),
+    new THREE.Vector3(0.045, 1.915, -0.369),
+    new THREE.Vector3(0.085, 1.94, -0.362)
+  ]);
+  const smile = new THREE.Mesh(new THREE.TubeGeometry(smileCurve, 12, 0.012, 6, false), mouthMat);
+  animatedBody.add(smile);
+
+  // Pivoted arms allow natural swinging instead of sliding block limbs.
+  const leftArm = new THREE.Group();
+  leftArm.position.set(-0.53, 1.53, 0);
+  animatedBody.add(leftArm);
+  roundedPart(leftArm, 0.30, 0.72, 0.36, skinMat, { x: 0, y: -0.34, z: 0 }, 0.075);
+  roundedPart(leftArm, 0.25, 0.23, 0.30, skinMat, { x: 0, y: -0.76, z: -0.015 }, 0.07);
+
+  const rightArm = new THREE.Group();
+  rightArm.position.set(0.53, 1.53, 0);
+  animatedBody.add(rightArm);
+  roundedPart(rightArm, 0.30, 0.72, 0.36, skinMat, { x: 0, y: -0.34, z: 0 }, 0.075);
+  roundedPart(rightArm, 0.25, 0.23, 0.30, skinMat, { x: 0, y: -0.76, z: -0.015 }, 0.07);
+
+  // Pivoted legs with simple light shoes.
+  const leftLeg = new THREE.Group();
+  leftLeg.position.set(-0.23, 0.77, 0);
+  animatedBody.add(leftLeg);
+  roundedPart(leftLeg, 0.37, 0.70, 0.40, pantsMat, { x: 0, y: -0.34, z: 0 }, 0.065);
+  roundedPart(leftLeg, 0.39, 0.20, 0.51, shoeMat, { x: 0, y: -0.70, z: -0.055 }, 0.065);
+
+  const rightLeg = new THREE.Group();
+  rightLeg.position.set(0.23, 0.77, 0);
+  animatedBody.add(rightLeg);
+  roundedPart(rightLeg, 0.37, 0.70, 0.40, pantsMat, { x: 0, y: -0.34, z: 0 }, 0.065);
+  roundedPart(rightLeg, 0.39, 0.20, 0.51, shoeMat, { x: 0, y: -0.70, z: -0.055 }, 0.065);
+
+  // Floating name label. A blank name hides it.
   const labelCanvas = document.createElement("canvas");
   labelCanvas.width = 512;
   labelCanvas.height = 128;
@@ -315,7 +361,7 @@ function createCharacter(shirtColor) {
   const labelTexture = new THREE.CanvasTexture(labelCanvas);
   const labelMaterial = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, depthWrite: false });
   const labelSprite = new THREE.Sprite(labelMaterial);
-  labelSprite.position.y = 2.55;
+  labelSprite.position.y = 2.88;
   labelSprite.scale.set(2.15, 0.54, 1);
   labelSprite.visible = false;
   group.add(labelSprite);
@@ -345,29 +391,68 @@ function createCharacter(shirtColor) {
     labelTexture.needsUpdate = true;
   }
 
-  return { group, setName };
+  function updateAnimation(isMoving, isAirborne, time) {
+    if (isAirborne) {
+      leftLeg.rotation.x = 0.22;
+      rightLeg.rotation.x = -0.22;
+      leftArm.rotation.x = -0.48;
+      rightArm.rotation.x = -0.48;
+      animatedBody.position.y = 0;
+      return;
+    }
+    if (isMoving) {
+      const swing = Math.sin(time * 10) * 0.58;
+      leftLeg.rotation.x = swing;
+      rightLeg.rotation.x = -swing;
+      leftArm.rotation.x = -swing * 0.72;
+      rightArm.rotation.x = swing * 0.72;
+      animatedBody.position.y = Math.abs(Math.sin(time * 10)) * 0.035;
+    } else {
+      leftLeg.rotation.x = THREE.MathUtils.damp(leftLeg.rotation.x, 0, 12, 1 / 60);
+      rightLeg.rotation.x = THREE.MathUtils.damp(rightLeg.rotation.x, 0, 12, 1 / 60);
+      leftArm.rotation.x = Math.sin(time * 1.8) * 0.025;
+      rightArm.rotation.x = -Math.sin(time * 1.8) * 0.025;
+      animatedBody.position.y = Math.sin(time * 2) * 0.012;
+    }
+  }
+
+  return { group, setName, updateAnimation };
 }
 
 // LOCAL PLAYER
-const localCharacter = createCharacter(0x658fd0);
+const localCharacter = createCharacter();
 const player = localCharacter.group;
 scene.add(player);
 player.position.set(0, 0, 7);
 
-// MOVEMENT SETTINGS
+// MOVEMENT AND JUMP SETTINGS
 const keys = {};
 let stickX = 0;
 let stickY = 0;
 let cameraYaw = 0;
 const speed = 7.2;
+const jumpPower = 7.4;
+const gravity = 18;
+let verticalVelocity = 0;
+let grounded = true;
+let jumpRequested = false;
+let isMoving = false;
 
 window.addEventListener("keydown", event => {
   const key = event.key.toLowerCase();
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) {
+    event.preventDefault();
+  }
+  if (key === " " && !event.repeat && joined) jumpRequested = true;
   keys[key] = true;
-  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
 });
 window.addEventListener("keyup", event => { keys[event.key.toLowerCase()] = false; });
-window.addEventListener("blur", () => { for (const key in keys) keys[key] = false; });
+window.addEventListener("blur", () => {
+  for (const key in keys) keys[key] = false;
+  stickX = 0;
+  stickY = 0;
+  jumpRequested = false;
+});
 
 // MOBILE JOYSTICK
 const joystick = document.getElementById("joystick");
@@ -381,7 +466,10 @@ function moveStick(event) {
   let dy = event.clientY - centerY;
   const maxDistance = 38;
   const distance = Math.hypot(dx, dy);
-  if (distance > maxDistance) { dx = dx / distance * maxDistance; dy = dy / distance * maxDistance; }
+  if (distance > maxDistance) {
+    dx = dx / distance * maxDistance;
+    dy = dy / distance * maxDistance;
+  }
   stickX = dx / maxDistance;
   stickY = -dy / maxDistance;
   knob.style.left = `calc(50% + ${dx}px)`;
@@ -398,11 +486,20 @@ joystick.addEventListener("pointermove", event => {
 });
 function releaseStick(event) {
   if (event.pointerId !== stickPointer) return;
-  stickPointer = null; stickX = 0; stickY = 0;
-  knob.style.left = "50%"; knob.style.top = "50%";
+  stickPointer = null;
+  stickX = 0;
+  stickY = 0;
+  knob.style.left = "50%";
+  knob.style.top = "50%";
 }
 joystick.addEventListener("pointerup", releaseStick);
 joystick.addEventListener("pointercancel", releaseStick);
+
+// MOBILE JUMP BUTTON
+jumpButton.addEventListener("pointerdown", event => {
+  event.preventDefault();
+  if (joined) jumpRequested = true;
+});
 
 // CAMERA LOOK: DRAG WITH MOUSE OR FINGER
 const canvas = renderer.domElement;
@@ -421,7 +518,9 @@ canvas.addEventListener("pointermove", event => {
   cameraYaw -= difference * 0.006;
   previousX = event.clientX;
 });
-function stopLooking(event) { if (event.pointerId === lookPointer) lookPointer = null; }
+function stopLooking(event) {
+  if (event.pointerId === lookPointer) lookPointer = null;
+}
 canvas.addEventListener("pointerup", stopLooking);
 canvas.addEventListener("pointercancel", stopLooking);
 
@@ -443,34 +542,36 @@ function updatePlayerStatus() {
 
 function validPlayerData(data) {
   return data && Number.isFinite(data.x) && Number.isFinite(data.z) &&
-    Number.isFinite(data.rotationY) && Number.isFinite(data.updatedAt);
-}
-
-function shirtColorFor(uid) {
-  const colors = [0xd47ca4, 0x8d79cc, 0xe0a04e, 0x4aaca5, 0xc56f61];
-  let hash = 0;
-  for (let i = 0; i < uid.length; i++) hash = (hash * 31 + uid.charCodeAt(i)) >>> 0;
-  return colors[hash % colors.length];
+    Number.isFinite(data.rotationY) && Number.isFinite(data.updatedAt) &&
+    (data.y === undefined || Number.isFinite(data.y));
 }
 
 function upsertRemotePlayer(uid, data) {
   if (uid === myUid || !validPlayerData(data)) return;
+  const safeY = THREE.MathUtils.clamp(Number.isFinite(data.y) ? data.y : 0, 0, 4);
   let remote = remotePlayers.get(uid);
+
   if (!remote) {
-    const character = createCharacter(shirtColorFor(uid));
+    const character = createCharacter();
     scene.add(character.group);
-    character.group.position.set(data.x, 0, data.z);
+    character.group.position.set(data.x, safeY, data.z);
     character.group.rotation.y = data.rotationY;
+
     remote = {
       group: character.group,
       setName: character.setName,
+      updateAnimation: character.updateAnimation,
       targetX: data.x,
+      targetY: safeY,
       targetZ: data.z,
       targetRotationY: data.rotationY
     };
+
     remotePlayers.set(uid, remote);
   }
+
   remote.targetX = THREE.MathUtils.clamp(data.x, -115, 115);
+  remote.targetY = safeY;
   remote.targetZ = THREE.MathUtils.clamp(data.z, -115, 115);
   remote.targetRotationY = data.rotationY;
   remote.setName(typeof data.name === "string" ? data.name : "");
@@ -480,30 +581,45 @@ function upsertRemotePlayer(uid, data) {
 function removeRemotePlayer(uid) {
   const remote = remotePlayers.get(uid);
   if (!remote) return;
+
   scene.remove(remote.group);
+
   remote.group.traverse(object => {
     if (object.geometry) object.geometry.dispose();
+
     if (object.material) {
-      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      const materials = Array.isArray(object.material)
+        ? object.material
+        : [object.material];
+
       for (const material of materials) {
         if (material.map) material.map.dispose();
         material.dispose();
       }
     }
   });
+
   remotePlayers.delete(uid);
   updatePlayerStatus();
 }
 
 function subscribeToOtherPlayers() {
-  onChildAdded(playersRef, snapshot => upsertRemotePlayer(snapshot.key, snapshot.val()), error => {
+  onChildAdded(playersRef, snapshot => {
+    upsertRemotePlayer(snapshot.key, snapshot.val());
+  }, error => {
     console.error("Player listener error:", error);
     joinStatus.textContent = "Could not read the room. Check the database rules.";
   });
-  onChildChanged(playersRef, snapshot => upsertRemotePlayer(snapshot.key, snapshot.val()), error => {
+
+  onChildChanged(playersRef, snapshot => {
+    upsertRemotePlayer(snapshot.key, snapshot.val());
+  }, error => {
     console.error("Player update listener error:", error);
   });
-  onChildRemoved(playersRef, snapshot => removeRemotePlayer(snapshot.key), error => {
+
+  onChildRemoved(playersRef, snapshot => {
+    removeRemotePlayer(snapshot.key);
+  }, error => {
     console.error("Player removal listener error:", error);
   });
 }
@@ -511,20 +627,26 @@ function subscribeToOtherPlayers() {
 function currentPlayerData() {
   const data = {
     x: Number(player.position.x.toFixed(3)),
+    y: Number(player.position.y.toFixed(3)),
     z: Number(player.position.z.toFixed(3)),
     rotationY: Number(player.rotation.y.toFixed(3)),
     updatedAt: Date.now()
   };
+
   if (displayName) data.name = displayName;
   return data;
 }
 
 async function publishPlayerState(force = false) {
   if (!joined || !myPlayerRef || writeInProgress) return;
+
   const now = Date.now();
+
   if (!force && now - lastNetworkUpdate < 140) return;
+
   lastNetworkUpdate = now;
   writeInProgress = true;
+
   try {
     await set(myPlayerRef, currentPlayerData());
   } catch (error) {
@@ -533,19 +655,23 @@ async function publishPlayerState(force = false) {
   } finally {
     writeInProgress = false;
   }
-}
-
-function explainJoinError(error) {
-  console.error("Join error:", error);
-  if (error && error.code === "auth/unauthorized-domain") {
-    return "Firebase needs this website added to Authentication's Authorized domains. We'll fix that next.";
   }
-  if (error && (error.code === "PERMISSION_DENIED" || error.code === "database/permission-denied")) {
+  function explainJoinError(error) {
+  console.error("Join error:", error);
+
+  if (error && error.code === "auth/unauthorized-domain") {
+    return "Firebase needs this website added to Authentication's Authorized domains.";
+  }
+
+  if (error && (error.code === "PERMISSION_DENIED" ||
+      error.code === "database/permission-denied")) {
     return "Firebase denied access. We'll check the Realtime Database rules.";
   }
+
   if (error && error.code === "auth/network-request-failed") {
     return "Network connection failed. Check your internet and try again.";
   }
+
   return "Couldn't connect right now. Check your internet and try again.";
 }
 
@@ -575,6 +701,10 @@ async function enterWorld() {
     joinScreen.style.display = "none";
     document.getElementById("message").style.display = "block";
 
+    if (window.matchMedia("(max-width: 800px)").matches) {
+      jumpButton.style.display = "flex";
+    }
+
   } catch (error) {
     joinButton.disabled = false;
     joinStatus.textContent = explainJoinError(error);
@@ -591,16 +721,23 @@ window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-});
 
-const clock = new THREE.Clock();
+  if (joined) {
+    jumpButton.style.display =
+      window.matchMedia("(max-width: 800px)").matches ? "flex" : "none";
+  }
+});
+  const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
 
   const delta = Math.min(clock.getDelta(), 0.05);
+  const elapsed = clock.elapsedTime;
 
   if (joined) {
+
+    // CAMERA-RELATIVE MOVEMENT
     let forward =
       (keys.w || keys.arrowup ? 1 : 0) -
       (keys.s || keys.arrowdown ? 1 : 0) + stickY;
@@ -616,13 +753,15 @@ function animate() {
       strafe /= inputLength;
     }
 
-    if (Math.abs(forward) > 0.001 || Math.abs(strafe) > 0.001) {
+    isMoving = inputLength > 0.06;
+
+    if (isMoving) {
       const moveX =
-        Math.sin(cameraYaw) * forward +
+        -Math.sin(cameraYaw) * forward +
         Math.cos(cameraYaw) * strafe;
 
       const moveZ =
-        -Math.cos(cameraYaw) * forward +
+        -Math.cos(cameraYaw) * forward -
         Math.sin(cameraYaw) * strafe;
 
       player.position.x = THREE.MathUtils.clamp(
@@ -635,14 +774,58 @@ function animate() {
         -125, 125
       );
 
-      player.rotation.y = Math.atan2(moveX, -moveZ);
+      const desiredRotation = Math.atan2(moveX, -moveZ);
+
+      const angleDifference = Math.atan2(
+        Math.sin(desiredRotation - player.rotation.y),
+        Math.cos(desiredRotation - player.rotation.y)
+      );
+
+      player.rotation.y +=
+        angleDifference * (1 - Math.exp(-14 * delta));
     }
 
-    const smoothing = 1 - Math.exp(-10 * delta);
+    // JUMPING AND GRAVITY
+    if (jumpRequested && grounded) {
+      verticalVelocity = jumpPower;
+      grounded = false;
+    }
+
+    jumpRequested = false;
+
+    if (!grounded) {
+      verticalVelocity -= gravity * delta;
+      player.position.y += verticalVelocity * delta;
+
+      if (player.position.y <= 0) {
+        player.position.y = 0;
+        verticalVelocity = 0;
+        grounded = true;
+      }
+    }
+
+    // LOCAL CHARACTER ANIMATION
+    localCharacter.updateAnimation(
+      isMoving,
+      !grounded,
+      elapsed
+    );
+
+    // REMOTE PLAYER MOVEMENT AND JUMPING
+    const smoothing = 1 - Math.exp(-12 * delta);
 
     for (const remote of remotePlayers.values()) {
+
+      const remoteWasMoving = Math.hypot(
+        remote.targetX - remote.group.position.x,
+        remote.targetZ - remote.group.position.z
+      ) > 0.025;
+
       remote.group.position.x +=
         (remote.targetX - remote.group.position.x) * smoothing;
+
+      remote.group.position.y +=
+        (remote.targetY - remote.group.position.y) * smoothing;
 
       remote.group.position.z +=
         (remote.targetZ - remote.group.position.z) * smoothing;
@@ -653,11 +836,21 @@ function animate() {
       );
 
       remote.group.rotation.y += angleDifference * smoothing;
+
+      remote.updateAnimation(
+        remoteWasMoving,
+        remote.targetY > 0.08 || remote.group.position.y > 0.08,
+        elapsed
+      );
     }
 
     publishPlayerState();
+
+  } else {
+    localCharacter.updateAnimation(false, false, elapsed);
   }
 
+  // CAMERA FOLLOW
   const cameraDistance = 10;
 
   camera.position.set(
@@ -680,6 +873,7 @@ animate();
 loading.style.display = "none";
 joinScreen.style.display = "flex";
 joinStatus.textContent = "Your world is ready. Press Enter to join.";
-  </script>
+
+</script>
 </body>
 </html>
