@@ -774,7 +774,7 @@ function animate() {
         -125, 125
       );
 
-      const desiredRotation = Math.atan2(moveX, -moveZ);
+      const desiredRotation = Math.atan2(-moveX, -moveZ);
 
       const angleDifference = Math.atan2(
         Math.sin(desiredRotation - player.rotation.y),
