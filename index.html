@@ -549,4 +549,137 @@ function explainJoinError(error) {
   return "Couldn't connect right now. Check your internet and try again.";
 }
 
-async function enterW
+async function enterWorld() {
+  if (joined) return;
+
+  joinButton.disabled = true;
+  joinStatus.textContent = "Connecting to your world...";
+  displayName = nameInput.value.trim().slice(0, 20);
+
+  try {
+    if (!auth || !database || !playersRef) {
+      throw new Error("Firebase was not initialized.");
+    }
+
+    const credential = await signInAnonymously(auth);
+    myUid = credential.user.uid;
+    myPlayerRef = ref(database, `rooms/${ROOM_ID}/players/${myUid}`);
+
+    await onDisconnect(myPlayerRef).remove();
+    await set(myPlayerRef, currentPlayerData());
+
+    joined = true;
+    subscribeToOtherPlayers();
+    updatePlayerStatus();
+
+    joinScreen.style.display = "none";
+    document.getElementById("message").style.display = "block";
+
+  } catch (error) {
+    joinButton.disabled = false;
+    joinStatus.textContent = explainJoinError(error);
+  }
+}
+
+joinButton.addEventListener("click", enterWorld);
+
+nameInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") enterWorld();
+});
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = Math.min(clock.getDelta(), 0.05);
+
+  if (joined) {
+    let forward =
+      (keys.w || keys.arrowup ? 1 : 0) -
+      (keys.s || keys.arrowdown ? 1 : 0) + stickY;
+
+    let strafe =
+      (keys.d || keys.arrowright ? 1 : 0) -
+      (keys.a || keys.arrowleft ? 1 : 0) + stickX;
+
+    const inputLength = Math.hypot(forward, strafe);
+
+    if (inputLength > 1) {
+      forward /= inputLength;
+      strafe /= inputLength;
+    }
+
+    if (Math.abs(forward) > 0.001 || Math.abs(strafe) > 0.001) {
+      const moveX =
+        Math.sin(cameraYaw) * forward +
+        Math.cos(cameraYaw) * strafe;
+
+      const moveZ =
+        -Math.cos(cameraYaw) * forward +
+        Math.sin(cameraYaw) * strafe;
+
+      player.position.x = THREE.MathUtils.clamp(
+        player.position.x + moveX * speed * delta,
+        -125, 125
+      );
+
+      player.position.z = THREE.MathUtils.clamp(
+        player.position.z + moveZ * speed * delta,
+        -125, 125
+      );
+
+      player.rotation.y = Math.atan2(moveX, -moveZ);
+    }
+
+    const smoothing = 1 - Math.exp(-10 * delta);
+
+    for (const remote of remotePlayers.values()) {
+      remote.group.position.x +=
+        (remote.targetX - remote.group.position.x) * smoothing;
+
+      remote.group.position.z +=
+        (remote.targetZ - remote.group.position.z) * smoothing;
+
+      const angleDifference = Math.atan2(
+        Math.sin(remote.targetRotationY - remote.group.rotation.y),
+        Math.cos(remote.targetRotationY - remote.group.rotation.y)
+      );
+
+      remote.group.rotation.y += angleDifference * smoothing;
+    }
+
+    publishPlayerState();
+  }
+
+  const cameraDistance = 10;
+
+  camera.position.set(
+    player.position.x + Math.sin(cameraYaw) * cameraDistance,
+    player.position.y + 5.5,
+    player.position.z + Math.cos(cameraYaw) * cameraDistance
+  );
+
+  camera.lookAt(
+    player.position.x,
+    player.position.y + 1.4,
+    player.position.z
+  );
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+loading.style.display = "none";
+joinScreen.style.display = "flex";
+joinStatus.textContent = "Your world is ready. Press Enter to join.";
+  </script>
+</body>
+</html>
