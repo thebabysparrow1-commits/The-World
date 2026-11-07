@@ -430,6 +430,11 @@ const keys = {};
 let stickX = 0;
 let stickY = 0;
 let cameraYaw = 0;
+let cameraDistance = 10;
+let targetCameraDistance = 10;
+  
+const minCameraDistance = 0.18;
+const maxCameraDistance = 26;
 const speed = 8.2;
 const jumpPower = 8.2;
 const gravity = 22;
@@ -501,28 +506,113 @@ jumpButton.addEventListener("pointerdown", event => {
   if (joined) jumpRequested = true;
 });
 
-// CAMERA LOOK: DRAG WITH MOUSE OR FINGER
+// CAMERA LOOK AND MOBILE PINCH ZOOM
 const canvas = renderer.domElement;
+
+const lookPointers = new Map();
 let lookPointer = null;
 let previousX = 0;
+let lastPinchDistance = null;
+
+function getTouchPoints() {
+  return [...lookPointers.values()].filter(
+    point => point.pointerType === "touch"
+  );
+}
+
+function getPinchDistance(points) {
+  return Math.hypot(
+    points[0].x - points[1].x,
+    points[0].y - points[1].y
+  );
+}
+
 canvas.addEventListener("pointerdown", event => {
   if (!joined) return;
   if (event.pointerType === "mouse" && event.button !== 0) return;
-  lookPointer = event.pointerId;
-  previousX = event.clientX;
+
   canvas.setPointerCapture(event.pointerId);
+
+  lookPointers.set(event.pointerId, {
+    x: event.clientX,
+    y: event.clientY,
+    pointerType: event.pointerType
+  });
+
+  const touches = getTouchPoints();
+
+  if (touches.length >= 2) {
+    lastPinchDistance = getPinchDistance(touches);
+    lookPointer = null;
+  } else {
+    lookPointer = event.pointerId;
+    previousX = event.clientX;
+  }
 });
+
 canvas.addEventListener("pointermove", event => {
-  if (event.pointerId !== lookPointer) return;
-  const difference = event.clientX - previousX;
-  cameraYaw -= difference * 0.006;
-  previousX = event.clientX;
+  const point = lookPointers.get(event.pointerId);
+  if (!point) return;
+
+  point.x = event.clientX;
+  point.y = event.clientY;
+
+  const touches = getTouchPoints();
+
+  if (touches.length >= 2) {
+    const distance = getPinchDistance(touches);
+
+    if (lastPinchDistance !== null) {
+      targetCameraDistance = THREE.MathUtils.clamp(
+        targetCameraDistance +
+        (lastPinchDistance - distance) * 0.025,
+        minCameraDistance,
+        maxCameraDistance
+      );
+    }
+
+    lastPinchDistance = distance;
+    lookPointer = null;
+    return;
+  }
+
+  if (event.pointerId === lookPointer) {
+    const difference = event.clientX - previousX;
+    cameraYaw -= difference * 0.006;
+    previousX = event.clientX;
+  }
 });
+
 function stopLooking(event) {
-  if (event.pointerId === lookPointer) lookPointer = null;
+  lookPointers.delete(event.pointerId);
+
+  const touches = getTouchPoints();
+
+  if (touches.length === 1) {
+    lastPinchDistance = null;
+    lookPointer = touches[0].id;
+    previousX = touches[0].x;
+  } else if (touches.length === 0) {
+    lastPinchDistance = null;
+    if (event.pointerId === lookPointer) lookPointer = null;
+  }
 }
+
 canvas.addEventListener("pointerup", stopLooking);
 canvas.addEventListener("pointercancel", stopLooking);
+
+// PC MOUSE WHEEL ZOOM
+canvas.addEventListener("wheel", event => {
+  if (!joined) return;
+
+  event.preventDefault();
+
+  targetCameraDistance = THREE.MathUtils.clamp(
+    targetCameraDistance + event.deltaY * 0.012,
+    minCameraDistance,
+    maxCameraDistance
+  );
+}, { passive: false });
 
 // CAMERA START POSITION
 camera.position.set(0, 5.5, 17);
@@ -842,12 +932,41 @@ function animate() {
     localCharacter.updateAnimation(false, false, elapsed);
   }
 
-  // CAMERA FOLLOW
-  const cameraDistance = 10;
 
+  // CAMERA FOLLOW AND SMOOTH ZOOM
+
+cameraDistance = THREE.MathUtils.damp(
+  cameraDistance,
+  targetCameraDistance,
+  8,
+  delta
+);
+
+const firstPerson = cameraDistance <= 0.72;
+
+player.visible = !firstPerson;
+
+if (firstPerson) {
+
+  // First-person camera at the avatar's eye level.
+  camera.position.set(
+    player.position.x,
+    player.position.y + 2.12,
+    player.position.z
+  );
+
+  camera.lookAt(
+    player.position.x - Math.sin(cameraYaw) * 10,
+    player.position.y + 2.12,
+    player.position.z - Math.cos(cameraYaw) * 10
+  );
+
+} else {
+
+  // Normal third-person camera.
   camera.position.set(
     player.position.x + Math.sin(cameraYaw) * cameraDistance,
-    player.position.y + 5.5,
+    player.position.y + Math.max(1.6, 0.5 + cameraDistance * 0.5),
     player.position.z + Math.cos(cameraYaw) * cameraDistance
   );
 
@@ -856,6 +975,23 @@ function animate() {
     player.position.y + 1.4,
     player.position.z
   );
+}
+
+// Widen the field of view when zoomed out.
+const desiredFov = 65 +
+  THREE.MathUtils.clamp((cameraDistance - 10) / 16, 0, 1) * 15;
+
+const nextFov = THREE.MathUtils.damp(
+  camera.fov,
+  desiredFov,
+  5,
+  delta
+);
+
+if (Math.abs(nextFov - camera.fov) > 0.01) {
+  camera.fov = nextFov;
+  camera.updateProjectionMatrix();
+  }
 
   renderer.render(scene, camera);
 }
