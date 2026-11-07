@@ -401,12 +401,12 @@ function createCharacter() {
       return;
     }
     if (isMoving) {
-      const swing = Math.sin(time * 10) * 0.58;
+      const swing = Math.sin(time * 11.5) * 0.58;
       leftLeg.rotation.x = swing;
       rightLeg.rotation.x = -swing;
       leftArm.rotation.x = -swing * 0.72;
       rightArm.rotation.x = swing * 0.72;
-      animatedBody.position.y = Math.abs(Math.sin(time * 10)) * 0.035;
+      animatedBody.position.y = Math.abs(Math.sin(time * 11.5)) * 0.035;
     } else {
       leftLeg.rotation.x = THREE.MathUtils.damp(leftLeg.rotation.x, 0, 12, 1 / 60);
       rightLeg.rotation.x = THREE.MathUtils.damp(rightLeg.rotation.x, 0, 12, 1 / 60);
@@ -430,9 +430,9 @@ const keys = {};
 let stickX = 0;
 let stickY = 0;
 let cameraYaw = 0;
-const speed = 7.2;
-const jumpPower = 7.4;
-const gravity = 18;
+const speed = 8.2;
+const jumpPower = 8.2;
+const gravity = 22;
 let verticalVelocity = 0;
 let grounded = true;
 let jumpRequested = false;
