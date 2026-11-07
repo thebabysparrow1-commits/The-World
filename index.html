@@ -7,72 +7,169 @@
 <style>
 * { box-sizing: border-box; }
 html, body {
-  margin: 0; width: 100%; height: 100%; overflow: hidden;
-  font-family: Arial, sans-serif; background: #9ed8f4; touch-action: none;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: #9ed8f4;
+  touch-action: none;
 }
 #game { position: fixed; inset: 0; }
 canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 #message {
-  position: fixed; top: 16px; left: 16px; z-index: 5;
-  padding: 11px 15px; border-radius: 12px; color: #fff;
-  background: rgba(20, 45, 35, 0.68); font-size: 14px; line-height: 1.5;
-  max-width: 270px; pointer-events: none; display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 5;
+  display: none;
+  max-width: 290px;
+  padding: 11px 15px;
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(20, 45, 35, 0.72);
+  font-size: 14px;
+  line-height: 1.5;
+  pointer-events: none;
 }
 #joystick {
-  position: fixed; z-index: 6; left: 25px; bottom: 28px;
-  width: 125px; height: 125px; border-radius: 50%;
-  background: rgba(255,255,255,0.20); border: 2px solid rgba(255,255,255,0.55);
-  display: none; touch-action: none;
+  position: fixed;
+  z-index: 6;
+  left: 25px;
+  bottom: 28px;
+  width: 125px;
+  height: 125px;
+  display: none;
+  border: 2px solid rgba(255,255,255,0.55);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.20);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 #knob {
-  position: absolute; width: 52px; height: 52px; left: 50%; top: 50%;
-  transform: translate(-50%, -50%); border-radius: 50%;
-  background: rgba(255,255,255,0.85); border: 2px solid rgba(80,120,90,0.5);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52px;
+  height: 52px;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(80,120,90,0.5);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.88);
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  pointer-events: none;
 }
 #jumpButton {
-  position: fixed; z-index: 7; right: 27px; bottom: 43px;
-  width: 82px; height: 82px; border: 2px solid rgba(255,255,255,0.75);
-  border-radius: 50%; display: none; align-items: center; justify-content: center;
-  color: #34513b; background: rgba(255,255,255,0.78);
+  position: fixed;
+  z-index: 7;
+  right: 27px;
+  bottom: 43px;
+  width: 82px;
+  height: 82px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255,255,255,0.75);
+  border-radius: 50%;
+  color: #34513b;
+  background: rgba(255,255,255,0.82);
   box-shadow: 0 4px 14px rgba(25,50,35,0.18);
-  font-size: 14px; font-weight: 800; letter-spacing: 0.5px;
-  touch-action: none; user-select: none; -webkit-user-select: none;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
-#jumpButton:active { transform: scale(0.96); background: rgba(255,255,255,0.95); }
+#jumpButton:active { transform: scale(0.96); background: rgba(255,255,255,0.98); }
 #loading {
-  position: fixed; inset: 0; display: grid; place-items: center;
-  color: #24412d; font-size: 20px; background: #b9e7c0; z-index: 10;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  color: #24412d;
+  background: #b9e7c0;
+  font-size: 20px;
 }
 #joinScreen {
-  position: fixed; inset: 0; z-index: 11; display: none;
-  align-items: center; justify-content: center; padding: 22px;
-  background: rgba(17, 42, 31, 0.28); backdrop-filter: blur(5px);
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px;
+  background: rgba(17, 42, 31, 0.12);
+  pointer-events: none;
 }
 #joinCard {
-  width: min(100%, 360px); padding: 26px 22px; border-radius: 22px;
-  text-align: center; color: #29442f; background: rgba(255, 252, 239, 0.96);
-  box-shadow: 0 15px 45px rgba(20, 45, 35, 0.22);
+  width: min(100%, 390px);
+  padding: 15px 17px;
+  border: 1px solid rgba(255,255,255,0.75);
+  border-radius: 20px;
+  color: #29442f;
+  background: rgba(255, 252, 239, 0.96);
+  box-shadow: 0 12px 38px rgba(20, 45, 35, 0.22);
+  text-align: center;
+  pointer-events: auto;
 }
-#joinCard h1 { margin: 0 0 8px; font-size: 29px; }
-#joinCard p { margin: 0 0 18px; line-height: 1.5; font-size: 14px; }
+#joinCard h1 { margin: 0 0 5px; font-size: 25px; }
+#joinCard p { margin: 0 0 9px; line-height: 1.35; font-size: 12px; }
 #playerName {
-  width: 100%; padding: 13px 14px; border: 1px solid #c6d2bd;
-  border-radius: 12px; font-size: 16px; outline: none; color: #243c2b;
-  background: #fff; touch-action: auto;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #c6d2bd;
+  border-radius: 11px;
+  outline: none;
+  color: #243c2b;
+  background: #fff;
+  font-size: 16px;
+  touch-action: auto;
 }
 #playerName:focus { border-color: #5f9c65; box-shadow: 0 0 0 3px rgba(95,156,101,0.15); }
+#choiceRow { display: flex; gap: 8px; margin-top: 9px; }
+.choiceButton {
+  flex: 1;
+  padding: 10px 8px;
+  border: 1px solid #c8d4c4;
+  border-radius: 11px;
+  color: #36513a;
+  background: #f4f5eb;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.choiceButton.selected {
+  border-color: #4f8d59;
+  color: #fff;
+  background: #518d58;
+  box-shadow: 0 0 0 2px rgba(81,141,88,0.15);
+}
+#avatarStatus { min-height: 16px; margin: 7px 0 2px !important; color: #4e7252; font-size: 11px !important; }
 #enterButton {
-  width: 100%; margin-top: 12px; padding: 14px; border: 0; border-radius: 12px;
-  color: white; background: #518d58; font-size: 16px; font-weight: bold;
-  cursor: pointer; touch-action: manipulation;
+  width: 100%;
+  margin-top: 7px;
+  padding: 12px;
+  border: 0;
+  border-radius: 11px;
+  color: white;
+  background: #518d58;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 #enterButton:disabled { opacity: 0.65; cursor: wait; }
-#joinStatus { min-height: 20px; margin: 12px 0 0 !important; color: #637568; font-size: 12px !important; }
-#joinHint { margin-top: 10px !important; margin-bottom: 0 !important; font-size: 11px !important; color: #758174; }
+#joinStatus { min-height: 17px; margin: 8px 0 0 !important; color: #637568; font-size: 11px !important; }
+#joinHint { margin: 5px 0 0 !important; color: #758174; font-size: 10px !important; }
 @media (max-width: 800px) {
-  #joystick { display: block; }
-  #message { top: 10px; left: 10px; font-size: 12px; max-width: 205px; }
+  #message { top: 9px; left: 9px; max-width: 205px; font-size: 12px; }
+  #joinCard { padding: 13px 14px; }
+  #joinCard h1 { font-size: 23px; }
+  #joinCard p { font-size: 11px; }
 }
 </style>
 </head>
@@ -90,11 +187,16 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 <div id="joinScreen">
   <div id="joinCard">
     <h1>The World</h1>
-    <p>A little world made for two. Choose a name to show above your character, or leave it blank.</p>
+    <p>Choose your name and avatar. You can also tap one of the 3D characters below.</p>
     <input id="playerName" type="text" maxlength="20" autocomplete="nickname" placeholder="Your name (optional)">
+    <div id="choiceRow">
+      <button class="choiceButton selected" id="maleChoice" type="button">Male avatar</button>
+      <button class="choiceButton" id="femaleChoice" type="button">Female avatar</button>
+    </div>
+    <p id="avatarStatus" aria-live="polite">Selected: Male avatar</p>
     <button id="enterButton" type="button">Enter the world</button>
     <p id="joinStatus" role="status">Getting the world ready...</p>
-    <p id="joinHint">No account or manual sign-in needed.</p>
+    <p id="joinHint">Tap a character on its platform to select it. No account needed.</p>
   </div>
 </div>
 <script type="importmap">
@@ -113,7 +215,7 @@ import {
   getDatabase, ref, set, onDisconnect,
   onChildAdded, onChildChanged, onChildRemoved
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
-
+// DOM ELEMENTS
 const game = document.getElementById("game");
 const loading = document.getElementById("loading");
 const joinScreen = document.getElementById("joinScreen");
@@ -122,8 +224,13 @@ const nameInput = document.getElementById("playerName");
 const joinStatus = document.getElementById("joinStatus");
 const playerStatus = document.getElementById("playerStatus");
 const jumpButton = document.getElementById("jumpButton");
+const joystick = document.getElementById("joystick");
+const knob = document.getElementById("knob");
+const maleChoice = document.getElementById("maleChoice");
+const femaleChoice = document.getElementById("femaleChoice");
+const avatarStatus = document.getElementById("avatarStatus");
 
-// Firebase web-app configuration from The World project.
+// FIREBASE CONFIGURATION - the same project and room as the existing game.
 const firebaseConfig = {
   apiKey: "AIzaSyB6YcO7f975xoSQUg65fO831zOyma2xO6g",
   authDomain: "the-world-32842.firebaseapp.com",
@@ -134,10 +241,10 @@ const firebaseConfig = {
   appId: "1:589427112334:web:09c380bc59f9a49dfe4cdf"
 };
 const ROOM_ID = "birthday-meadow";
-let auth;
-let database;
-let playersRef;
-let myPlayerRef;
+let auth = null;
+let database = null;
+let playersRef = null;
+let myPlayerRef = null;
 let myUid = null;
 let displayName = "";
 let joined = false;
@@ -152,10 +259,10 @@ try {
   playersRef = ref(database, `rooms/${ROOM_ID}/players`);
 } catch (error) {
   console.error("Firebase setup error:", error);
-  joinStatus.textContent = "The connection could not start. Please refresh the page.";
+  joinStatus.textContent = "The connection could not start. Refresh the page and try again.";
 }
 
-// WORLD SETUP
+// THREE.JS WORLD SETUP
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9ed8f4);
 scene.fog = new THREE.Fog(0x9ed8f4, 55, 170);
@@ -166,6 +273,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = false;
 game.appendChild(renderer.domElement);
+const canvas = renderer.domElement;
 
 // LIGHTING
 scene.add(new THREE.HemisphereLight(0xffffff, 0x66834c, 2.1));
@@ -173,20 +281,18 @@ const sunlight = new THREE.DirectionalLight(0xfff0d5, 1.5);
 sunlight.position.set(-25, 45, 25);
 scene.add(sunlight);
 
-// MATERIALS
+// WORLD MATERIALS
 const grassMat = new THREE.MeshStandardMaterial({ color: 0x70bd64, roughness: 1 });
 const stoneMat = new THREE.MeshStandardMaterial({ color: 0xb5b3a9, roughness: 1 });
 const woodMat = new THREE.MeshStandardMaterial({ color: 0xa97854, roughness: 1 });
 const leafMat1 = new THREE.MeshStandardMaterial({ color: 0x3f984c, roughness: 1 });
 const leafMat2 = new THREE.MeshStandardMaterial({ color: 0x5eae5c, roughness: 1 });
 
-// GROUND
+// GROUND AND GRASS PATCHES
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(280, 280), grassMat);
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -0.1;
 scene.add(ground);
-
-// SMALL GRASS PATCHES
 const patchMaterials = [
   new THREE.MeshBasicMaterial({ color: 0x82c76f, transparent: true, opacity: 0.22 }),
   new THREE.MeshBasicMaterial({ color: 0x4caa50, transparent: true, opacity: 0.18 })
@@ -206,15 +312,13 @@ for (let z = 7; z > -37; z -= 2.1) {
   scene.add(stone);
 }
 
-// GAZEBO PLATFORM
-const platform = new THREE.Mesh(
+// GAZEBO PLATFORM, COLUMNS AND ROOF
+const gazeboPlatform = new THREE.Mesh(
   new THREE.CylinderGeometry(4.4, 4.4, 0.3, 32),
   new THREE.MeshStandardMaterial({ color: 0xe8dfd0, roughness: 1 })
 );
-platform.position.y = 0.15;
-scene.add(platform);
-
-// GAZEBO COLUMNS
+gazeboPlatform.position.y = 0.15;
+scene.add(gazeboPlatform);
 const columnGeometry = new THREE.CylinderGeometry(0.13, 0.16, 3.4, 8);
 for (let i = 0; i < 6; i++) {
   const angle = (i / 6) * Math.PI * 2;
@@ -222,21 +326,15 @@ for (let i = 0; i < 6; i++) {
   column.position.set(Math.cos(angle) * 3, 2, Math.sin(angle) * 3);
   scene.add(column);
 }
-
-// GAZEBO ROOF SUPPORT
 const roofRing = new THREE.Mesh(new THREE.CylinderGeometry(4.05, 4.05, 0.18, 8), woodMat);
 roofRing.position.y = 3.65;
 scene.add(roofRing);
-
-// GAZEBO ROOF
 const roof = new THREE.Mesh(
   new THREE.CylinderGeometry(0.25, 4.25, 1.8, 8),
   new THREE.MeshStandardMaterial({ color: 0xd99caa, roughness: 1 })
 );
 roof.position.y = 4.55;
 scene.add(roof);
-
-// ROOF TOP
 const roofTop = new THREE.Mesh(
   new THREE.SphereGeometry(0.3, 10, 8),
   new THREE.MeshStandardMaterial({ color: 0xffe5ae })
@@ -266,9 +364,9 @@ function makeTree(x, z, scale = 1) {
 [
   [-9, -2, 1.0], [10, -3, 1.0], [-12, -12, 1.1], [12, -15, 0.95],
   [-9, -26, 1.0], [9, -29, 1.1], [-19, -8, 1.0], [19, -22, 1.0]
-].forEach(tree => makeTree(...tree));
+].forEach(item => makeTree(...item));
 
-// A FEW FLOWERS
+// FLOWERS
 const flowerColors = [0xffc4d5, 0xffe08a, 0xffffff];
 for (let i = 0; i < 28; i++) {
   const flower = new THREE.Mesh(
@@ -277,21 +375,20 @@ for (let i = 0; i < 28; i++) {
   );
   flower.position.set((Math.random() - 0.5) * 30, 0.3, -Math.random() * 35);
   scene.add(flower);
-}
-
-// DEFAULT CHARACTER: the same clean, rounded block-style avatar for every player.
+  }
+  // AVATAR BUILDER
 function createCharacter(type = "male") {
-  const isFemale = type === "female";
-
+  const avatarType = type === "female" ? "female" : "male";
+  const isFemale = avatarType === "female";
   const group = new THREE.Group();
   const animatedBody = new THREE.Group();
   group.add(animatedBody);
 
-  // Everyone receives the same starter colours. Outfit customization comes later.
   const skinMat = new THREE.MeshStandardMaterial({ color: 0xf0c9a7, roughness: 0.82 });
   const shirtMat = new THREE.MeshStandardMaterial({ color: 0xd7e6dc, roughness: 0.9 });
   const pantsMat = new THREE.MeshStandardMaterial({ color: 0x45546a, roughness: 0.95 });
   const shoeMat = new THREE.MeshStandardMaterial({ color: 0xf3f0e8, roughness: 0.85 });
+  const hairMat = new THREE.MeshStandardMaterial({ color: isFemale ? 0x50372e : 0x3c302b, roughness: 0.95 });
   const eyeMat = new THREE.MeshStandardMaterial({ color: 0x292b2b, roughness: 0.6 });
   const mouthMat = new THREE.MeshStandardMaterial({ color: 0x9b625b, roughness: 0.8 });
 
@@ -305,42 +402,37 @@ function createCharacter(type = "male") {
     return mesh;
   }
 
-  // Neck and softly rounded torso.
-  roundedPart(animatedBody, 0.24, 0.22, 0.24, skinMat, { x: 0, y: 1.61, z: 0 }, 0.06);
-  roundedPart(
-  animatedBody,
-  isFemale ? 0.84 : 0.96,
-  0.91,
-  isFemale ? 0.48 : 0.52,
-  shirtMat,
-  { x: 0, y: 1.18, z: 0 },
-  0.10
-);
-
-if (isFemale) {
-  // Wider hip shape under the default clothing
+  // NECK, TORSO AND WAIST
+  roundedPart(animatedBody, 0.24, 0.22, 0.24, skinMat, { x: 0, y: 1.62, z: 0 }, 0.06);
   roundedPart(
     animatedBody,
-    0.98, 0.32, 0.48,
-    pantsMat,
-    { x: 0, y: 0.82, z: 0 },
-    0.09
+    isFemale ? 0.84 : 0.94,
+    0.91,
+    isFemale ? 0.48 : 0.52,
+    shirtMat,
+    { x: 0, y: 1.18, z: 0 },
+    0.10
   );
-
-  // Subtle chest contour under the default shirt
-  const chestShape = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5, 12, 10),
-    shirtMat
-  );
-
-  chestShape.scale.set(0.68, 0.40, 0.18);
-  chestShape.position.set(0, 1.43, -0.25);
-  animatedBody.add(chestShape);
+  if (isFemale) {
+    roundedPart(animatedBody, 0.94, 0.30, 0.48, pantsMat, { x: 0, y: 0.83, z: 0 }, 0.09);
+    const chestShape = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 10), shirtMat);
+    chestShape.scale.set(0.57, 0.28, 0.12);
+    chestShape.position.set(0, 1.39, -0.25);
+    animatedBody.add(chestShape);
   }
-  // Head: a rounded cube, deliberately left without hair or accessories.
-  roundedPart(animatedBody, 0.78, 0.76, 0.72, skinMat, { x: 0, y: 2.08, z: 0 }, 0.16);
 
-  // Simple friendly face on the front (-Z) of the head.
+  // HEAD AND HAIR
+  roundedPart(animatedBody, 0.78, 0.76, 0.72, skinMat, { x: 0, y: 2.08, z: 0 }, 0.16);
+  roundedPart(animatedBody, 0.79, 0.22, 0.75, hairMat, { x: 0, y: 2.43, z: 0.015 }, 0.09);
+  if (isFemale) {
+    roundedPart(animatedBody, 0.84, 0.78, 0.22, hairMat, { x: 0, y: 2.02, z: 0.32 }, 0.10);
+    roundedPart(animatedBody, 0.19, 0.76, 0.28, hairMat, { x: -0.34, y: 1.98, z: 0.03 }, 0.08);
+    roundedPart(animatedBody, 0.19, 0.76, 0.28, hairMat, { x: 0.34, y: 1.98, z: 0.03 }, 0.08);
+  } else {
+    roundedPart(animatedBody, 0.66, 0.15, 0.54, hairMat, { x: 0, y: 2.48, z: -0.02 }, 0.07);
+  }
+
+  // FACE - FRONT OF THE AVATAR IS -Z
   for (const x of [-0.145, 0.145]) {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), eyeMat);
     eye.scale.set(0.82, 1.12, 0.42);
@@ -354,55 +446,37 @@ if (isFemale) {
     new THREE.Vector3(0.045, 1.915, -0.369),
     new THREE.Vector3(0.085, 1.94, -0.362)
   ]);
-  const smile = new THREE.Mesh(new THREE.TubeGeometry(smileCurve, 12, 0.012, 6, false), mouthMat);
-  animatedBody.add(smile);
+  animatedBody.add(new THREE.Mesh(new THREE.TubeGeometry(smileCurve, 12, 0.012, 6, false), mouthMat));
 
-// Pivoted arms
-const armWidth = isFemale ? 0.27 : 0.30;
-const armOffset = isFemale ? 0.49 : 0.53;
+  // PIVOTED ARMS
+  const armWidth = isFemale ? 0.27 : 0.30;
+  const armOffset = isFemale ? 0.49 : 0.53;
+  const leftArm = new THREE.Group();
+  leftArm.position.set(-armOffset, 1.53, 0);
+  animatedBody.add(leftArm);
+  roundedPart(leftArm, armWidth, 0.72, 0.36, skinMat, { x: 0, y: -0.34, z: 0 }, 0.075);
+  roundedPart(leftArm, 0.25, 0.23, 0.30, skinMat, { x: 0, y: -0.76, z: -0.015 }, 0.07);
+  const rightArm = new THREE.Group();
+  rightArm.position.set(armOffset, 1.53, 0);
+  animatedBody.add(rightArm);
+  roundedPart(rightArm, armWidth, 0.72, 0.36, skinMat, { x: 0, y: -0.34, z: 0 }, 0.075);
+  roundedPart(rightArm, 0.25, 0.23, 0.30, skinMat, { x: 0, y: -0.76, z: -0.015 }, 0.07);
 
-const leftArm = new THREE.Group();
-leftArm.position.set(-armOffset, 1.53, 0);
-animatedBody.add(leftArm);
+  // PIVOTED LEGS AND SHOES
+  const legWidth = isFemale ? 0.39 : 0.37;
+  const legOffset = isFemale ? 0.26 : 0.23;
+  const leftLeg = new THREE.Group();
+  leftLeg.position.set(-legOffset, 0.77, 0);
+  animatedBody.add(leftLeg);
+  roundedPart(leftLeg, legWidth, 0.70, 0.40, pantsMat, { x: 0, y: -0.34, z: 0 }, 0.065);
+  roundedPart(leftLeg, 0.39, 0.20, 0.51, shoeMat, { x: 0, y: -0.70, z: -0.055 }, 0.065);
+  const rightLeg = new THREE.Group();
+  rightLeg.position.set(legOffset, 0.77, 0);
+  animatedBody.add(rightLeg);
+  roundedPart(rightLeg, legWidth, 0.70, 0.40, pantsMat, { x: 0, y: -0.34, z: 0 }, 0.065);
+  roundedPart(rightLeg, 0.39, 0.20, 0.51, shoeMat, { x: 0, y: -0.70, z: -0.055 }, 0.065);
 
-roundedPart(leftArm, armWidth, 0.72, 0.36, skinMat,
-  { x: 0, y: -0.34, z: 0 }, 0.075);
-roundedPart(leftArm, 0.25, 0.23, 0.30, skinMat,
-  { x: 0, y: -0.76, z: -0.015 }, 0.07);
-
-const rightArm = new THREE.Group();
-rightArm.position.set(armOffset, 1.53, 0);
-animatedBody.add(rightArm);
-
-roundedPart(rightArm, armWidth, 0.72, 0.36, skinMat,
-  { x: 0, y: -0.34, z: 0 }, 0.075);
-roundedPart(rightArm, 0.25, 0.23, 0.30, skinMat,
-  { x: 0, y: -0.76, z: -0.015 }, 0.07);
-
-
-// Pivoted legs with simple light shoes
-const legWidth = isFemale ? 0.41 : 0.37;
-const legOffset = isFemale ? 0.26 : 0.23;
-
-const leftLeg = new THREE.Group();
-leftLeg.position.set(-legOffset, 0.77, 0);
-animatedBody.add(leftLeg);
-
-roundedPart(leftLeg, legWidth, 0.70, 0.40, pantsMat,
-  { x: 0, y: -0.34, z: 0 }, 0.065);
-roundedPart(leftLeg, 0.39, 0.20, 0.51, shoeMat,
-  { x: 0, y: -0.70, z: -0.055 }, 0.065);
-
-const rightLeg = new THREE.Group();
-rightLeg.position.set(legOffset, 0.77, 0);
-animatedBody.add(rightLeg);
-
-roundedPart(rightLeg, legWidth, 0.70, 0.40, pantsMat,
-  { x: 0, y: -0.34, z: 0 }, 0.065);
-roundedPart(rightLeg, 0.39, 0.20, 0.51, shoeMat,
-  { x: 0, y: -0.70, z: -0.055 }, 0.065);
-
-  // Floating name label. A blank name hides it.
+  // FLOATING PLAYER NAME
   const labelCanvas = document.createElement("canvas");
   labelCanvas.width = 512;
   labelCanvas.height = 128;
@@ -410,7 +484,7 @@ roundedPart(rightLeg, 0.39, 0.20, 0.51, shoeMat,
   const labelTexture = new THREE.CanvasTexture(labelCanvas);
   const labelMaterial = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, depthWrite: false });
   const labelSprite = new THREE.Sprite(labelMaterial);
-  labelSprite.position.y = 2.88;
+  labelSprite.position.y = 2.94;
   labelSprite.scale.set(2.15, 0.54, 1);
   labelSprite.visible = false;
   group.add(labelSprite);
@@ -423,7 +497,7 @@ roundedPart(rightLeg, 0.39, 0.20, 0.51, shoeMat,
       labelTexture.needsUpdate = true;
       return;
     }
-    labelContext.fillStyle = "rgba(25, 42, 30, 0.72)";
+    labelContext.fillStyle = "rgba(25, 42, 30, 0.74)";
     labelContext.beginPath();
     if (typeof labelContext.roundRect === "function") {
       labelContext.roundRect(22, 18, 468, 92, 28);
@@ -465,29 +539,110 @@ roundedPart(rightLeg, 0.39, 0.20, 0.51, shoeMat,
     }
   }
 
-  return { group, setName, updateAnimation };
+  return { group, setName, updateAnimation, avatarType };
+  }
+  // AVATAR SELECTION PLATFORMS AND 3D PREVIEWS
+function makeSelectionPlatform(x, color) {
+  const material = new THREE.MeshStandardMaterial({ color, roughness: 0.82, emissive: 0x000000 });
+  const platformMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.12, 1.2, 0.30, 32), material);
+  platformMesh.position.set(x, 0.15, 4.0);
+  scene.add(platformMesh);
+  const trim = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.16, 1.22, 0.07, 32),
+    new THREE.MeshStandardMaterial({ color: 0xf3e8d2, roughness: 0.8 })
+  );
+  trim.position.set(x, 0.30, 4.0);
+  scene.add(trim);
+  return { platformMesh, trim };
 }
+const malePlatform = makeSelectionPlatform(-1.85, 0x82b77c);
+const femalePlatform = makeSelectionPlatform(1.85, 0xd49eae);
+const malePreview = createCharacter("male");
+const femalePreview = createCharacter("female");
+malePreview.group.position.set(-1.85, 0.34, 4.0);
+femalePreview.group.position.set(1.85, 0.34, 4.0);
+scene.add(malePreview.group, femalePreview.group);
+
+let selectedAvatarType = "male";
+let localCharacter = null;
+let player = null;
+function setAvatarSelection(type) {
+  selectedAvatarType = type === "female" ? "female" : "male";
+  if (localCharacter && player && localCharacter.avatarType !== selectedAvatarType) {
+    scene.remove(player);
+    removeObjectResources(player);
+    localCharacter = createCharacter(selectedAvatarType);
+    player = localCharacter.group;
+    player.position.set(0, 0, 9);
+    player.visible = false;
+    scene.add(player);
+  }
+  maleChoice.classList.toggle("selected", selectedAvatarType === "male");
+  femaleChoice.classList.toggle("selected", selectedAvatarType === "female");
+  avatarStatus.textContent = `Selected: ${selectedAvatarType === "female" ? "Female" : "Male"} avatar`;
+  malePlatform.platformMesh.material.emissive.setHex(selectedAvatarType === "male" ? 0x345b30 : 0x000000);
+  femalePlatform.platformMesh.material.emissive.setHex(selectedAvatarType === "female" ? 0x68404a : 0x000000);
+}
+maleChoice.addEventListener("click", () => setAvatarSelection("male"));
+femaleChoice.addEventListener("click", () => setAvatarSelection("female"));
+setAvatarSelection("male");
+
+const raycaster = new THREE.Raycaster();
+const pointerPosition = new THREE.Vector2();
+canvas.addEventListener("pointerdown", event => {
+  if (joined) return;
+  const rect = canvas.getBoundingClientRect();
+  pointerPosition.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointerPosition.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointerPosition, camera);
+  const hits = raycaster.intersectObjects([malePreview.group, femalePreview.group], true);
+  if (!hits.length) return;
+  let root = hits[0].object;
+  while (root.parent && root.parent !== scene) root = root.parent;
+  if (root === malePreview.group) setAvatarSelection("male");
+  if (root === femalePreview.group) setAvatarSelection("female");
+});
 
 // LOCAL PLAYER
-let selectedAvatarType =
-  new URLSearchParams(window.location.search).get("avatar") === "female"
-    ? "female"
-    : "male";
-
-const localCharacter = createCharacter(selectedAvatarType);
-const player = localCharacter.group;
+localCharacter = createCharacter(selectedAvatarType);
+player = localCharacter.group;
+player.position.set(0, 0, 9);
 scene.add(player);
-player.position.set(0, 0, 7);
-  
-// MOVEMENT AND JUMP SETTINGS
-const keys = {};
+player.visible = false;
+
+function removeObjectResources(root) {
+  root.traverse(object => {
+    if (object.geometry) object.geometry.dispose();
+    if (object.material) {
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      for (const material of materials) {
+        if (material.map) material.map.dispose();
+        material.dispose();
+      }
+    }
+  });
+}
+function removeSelectionPreviews() {
+  scene.remove(malePreview.group, femalePreview.group);
+  scene.remove(malePlatform.platformMesh, malePlatform.trim);
+  scene.remove(femalePlatform.platformMesh, femalePlatform.trim);
+  removeObjectResources(malePreview.group);
+  removeObjectResources(femalePreview.group);
+  removeObjectResources(malePlatform.platformMesh);
+  removeObjectResources(malePlatform.trim);
+  removeObjectResources(femalePlatform.platformMesh);
+  removeObjectResources(femalePlatform.trim);
+}
+
+// MOVEMENT, JUMP AND CAMERA SETTINGS
+const keys = Object.create(null);
 let stickX = 0;
 let stickY = 0;
+let stickPointer = null;
 let cameraYaw = 0;
 let cameraPitch = 0.42;
 let cameraDistance = 10;
 let targetCameraDistance = 10;
-  
 const minCameraDistance = 0.18;
 const maxCameraDistance = 26;
 const speed = 8.2;
@@ -506,20 +661,29 @@ window.addEventListener("keydown", event => {
   if (key === " " && !event.repeat && joined) jumpRequested = true;
   keys[key] = true;
 });
-window.addEventListener("keyup", event => { keys[event.key.toLowerCase()] = false; });
+window.addEventListener("keyup", event => {
+  keys[event.key.toLowerCase()] = false;
+});
 window.addEventListener("blur", () => {
   for (const key in keys) keys[key] = false;
   stickX = 0;
   stickY = 0;
   jumpRequested = false;
+  stickPointer = null;
+  knob.style.left = "50%";
+  knob.style.top = "50%";
 });
 
-
+// MOBILE JOYSTICK
+function moveStick(event) {
+  const rect = joystick.getBoundingClientRect();
+  let dx = event.clientX - (rect.left + rect.width / 2);
+  let dy = event.clientY - (rect.top + rect.height / 2);
   const maxDistance = 38;
   const distance = Math.hypot(dx, dy);
   if (distance > maxDistance) {
-    dx = dx / distance * maxDistance;
-    dy = dy / distance * maxDistance;
+    dx = (dx / distance) * maxDistance;
+    dy = (dy / distance) * maxDistance;
   }
   stickX = dx / maxDistance;
   stickY = -dy / maxDistance;
@@ -528,6 +692,7 @@ window.addEventListener("blur", () => {
 }
 joystick.addEventListener("pointerdown", event => {
   if (!joined) return;
+  event.preventDefault();
   stickPointer = event.pointerId;
   joystick.setPointerCapture(event.pointerId);
   moveStick(event);
@@ -545,52 +710,33 @@ function releaseStick(event) {
 }
 joystick.addEventListener("pointerup", releaseStick);
 joystick.addEventListener("pointercancel", releaseStick);
-
-// MOBILE JUMP BUTTON
 jumpButton.addEventListener("pointerdown", event => {
   event.preventDefault();
   if (joined) jumpRequested = true;
 });
-
-// CAMERA LOOK, VERTICAL ROTATION AND MOBILE PINCH ZOOM
-
-const canvas = renderer.domElement;
-
+  // CAMERA LOOK, VERTICAL ROTATION AND MOBILE PINCH ZOOM
 const lookPointers = new Map();
 let lookPointer = null;
 let previousX = 0;
 let previousY = 0;
 let lastPinchDistance = null;
-
 function getTouchPoints() {
-  return [...lookPointers.values()].filter(
-    point => point.pointerType === "touch"
-  );
+  return [...lookPointers.values()].filter(point => point.pointerType === "touch");
 }
-
 function getPinchDistance(points) {
-  return Math.hypot(
-    points[0].x - points[1].x,
-    points[0].y - points[1].y
-  );
+  return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
 }
-
-// START CAMERA CONTROL
 canvas.addEventListener("pointerdown", event => {
   if (!joined) return;
   if (event.pointerType === "mouse" && event.button !== 0) return;
-
   canvas.setPointerCapture(event.pointerId);
-
   lookPointers.set(event.pointerId, {
     id: event.pointerId,
     x: event.clientX,
     y: event.clientY,
     pointerType: event.pointerType
   });
-
   const touches = getTouchPoints();
-
   if (touches.length >= 2) {
     lastPinchDistance = getPinchDistance(touches);
     lookPointer = null;
@@ -600,216 +746,162 @@ canvas.addEventListener("pointerdown", event => {
     previousY = event.clientY;
   }
 });
-
-// MOVE CAMERA AND HANDLE PINCH ZOOM
 canvas.addEventListener("pointermove", event => {
   const point = lookPointers.get(event.pointerId);
   if (!point) return;
-
   point.x = event.clientX;
   point.y = event.clientY;
-
   const touches = getTouchPoints();
-
   if (touches.length >= 2) {
     const distance = getPinchDistance(touches);
-
     if (lastPinchDistance !== null) {
       targetCameraDistance = THREE.MathUtils.clamp(
-        targetCameraDistance +
-        (lastPinchDistance - distance) * 0.04,
+        targetCameraDistance + (lastPinchDistance - distance) * 0.04,
         minCameraDistance,
         maxCameraDistance
       );
     }
-
     lastPinchDistance = distance;
     lookPointer = null;
     return;
   }
-
   if (event.pointerId === lookPointer) {
-    const differenceX = event.clientX - previousX;
-    const differenceY = event.clientY - previousY;
-
-    cameraYaw -= differenceX * 0.006;
-
+    cameraYaw -= (event.clientX - previousX) * 0.006;
     cameraPitch = THREE.MathUtils.clamp(
-      cameraPitch + differenceY * 0.005,
+      cameraPitch + (event.clientY - previousY) * 0.005,
       -0.28,
       1.25
     );
-
     previousX = event.clientX;
     previousY = event.clientY;
   }
 });
-
-// RELEASE CAMERA CONTROL
 function stopLooking(event) {
   lookPointers.delete(event.pointerId);
-
   const touches = getTouchPoints();
-
   if (touches.length >= 2) {
     lastPinchDistance = getPinchDistance(touches);
     lookPointer = null;
-
   } else if (touches.length === 1) {
     lastPinchDistance = null;
     lookPointer = touches[0].id;
     previousX = touches[0].x;
     previousY = touches[0].y;
-
   } else {
     lastPinchDistance = null;
     lookPointer = null;
   }
 }
-
 canvas.addEventListener("pointerup", stopLooking);
 canvas.addEventListener("pointercancel", stopLooking);
-
-// PC MOUSE WHEEL ZOOM
 window.addEventListener("wheel", event => {
   if (!joined) return;
-
   event.preventDefault();
-
   targetCameraDistance = THREE.MathUtils.clamp(
     targetCameraDistance + event.deltaY * 0.012,
     minCameraDistance,
     maxCameraDistance
   );
-
 }, { passive: false });
 
-// CAMERA START POSITION
-camera.position.set(0, 5.5, 17);
-camera.lookAt(player.position.x, 1.5, player.position.z);
+// INITIAL CAMERA VIEW FOR AVATAR SELECTION
+camera.position.set(0, 5.2, 14.5);
+camera.lookAt(0, 1.25, 4.0);
 
-// MULTIPLAYER HELPERS
+// MULTIPLAYER STATUS
 function updatePlayerStatus() {
   const count = 1 + remotePlayers.size;
   if (count === 1) {
     playerStatus.textContent = "Connected · waiting for your friend...";
   } else if (count === 2) {
-    playerStatus.textContent = "You're together! ✨";
+    playerStatus.textContent = "You're together!";
   } else {
     playerStatus.textContent = `${count} players are here.`;
   }
 }
-
 function validPlayerData(data) {
   return data && Number.isFinite(data.x) && Number.isFinite(data.z) &&
-    Number.isFinite(data.rotationY) && Number.isFinite(data.updatedAt) &&
+    Number.isFinite(data.rotationY) &&
     (data.y === undefined || Number.isFinite(data.y));
 }
-
+function removeRemotePlayer(uid, updateStatus = true) {
+  const remote = remotePlayers.get(uid);
+  if (!remote) return;
+  scene.remove(remote.group);
+  removeObjectResources(remote.group);
+  remotePlayers.delete(uid);
+  if (updateStatus) updatePlayerStatus();
+}
 function upsertRemotePlayer(uid, data) {
   if (uid === myUid || !validPlayerData(data)) return;
   const safeY = THREE.MathUtils.clamp(Number.isFinite(data.y) ? data.y : 0, 0, 4);
+  const safeType = data.avatarType === "female" ? "female" : "male";
   let remote = remotePlayers.get(uid);
-
+  if (remote && remote.avatarType !== safeType) {
+    removeRemotePlayer(uid, false);
+    remote = null;
+  }
   if (!remote) {
-    const character = createCharacter(
-  data.avatarType === "female" ? "female" : "male"
-);
+    const character = createCharacter(safeType);
     scene.add(character.group);
     character.group.position.set(data.x, safeY, data.z);
     character.group.rotation.y = data.rotationY;
-
     remote = {
       group: character.group,
       setName: character.setName,
       updateAnimation: character.updateAnimation,
+      avatarType: safeType,
       targetX: data.x,
       targetY: safeY,
       targetZ: data.z,
       targetRotationY: data.rotationY
     };
-
     remotePlayers.set(uid, remote);
   }
-
-  remote.targetX = THREE.MathUtils.clamp(data.x, -115, 115);
+  remote.targetX = THREE.MathUtils.clamp(data.x, -125, 125);
   remote.targetY = safeY;
-  remote.targetZ = THREE.MathUtils.clamp(data.z, -115, 115);
+  remote.targetZ = THREE.MathUtils.clamp(data.z, -125, 125);
   remote.targetRotationY = data.rotationY;
   remote.setName(typeof data.name === "string" ? data.name : "");
   updatePlayerStatus();
 }
-
-function removeRemotePlayer(uid) {
-  const remote = remotePlayers.get(uid);
-  if (!remote) return;
-
-  scene.remove(remote.group);
-
-  remote.group.traverse(object => {
-    if (object.geometry) object.geometry.dispose();
-
-    if (object.material) {
-      const materials = Array.isArray(object.material)
-        ? object.material
-        : [object.material];
-
-      for (const material of materials) {
-        if (material.map) material.map.dispose();
-        material.dispose();
-      }
-    }
-  });
-
-  remotePlayers.delete(uid);
-  updatePlayerStatus();
-}
-
 function subscribeToOtherPlayers() {
   onChildAdded(playersRef, snapshot => {
     upsertRemotePlayer(snapshot.key, snapshot.val());
   }, error => {
     console.error("Player listener error:", error);
-    joinStatus.textContent = "Could not read the room. Check the database rules.";
+    playerStatus.textContent = "Could not read the room. Check database rules.";
   });
-
   onChildChanged(playersRef, snapshot => {
     upsertRemotePlayer(snapshot.key, snapshot.val());
   }, error => {
     console.error("Player update listener error:", error);
   });
-
   onChildRemoved(playersRef, snapshot => {
     removeRemotePlayer(snapshot.key);
   }, error => {
     console.error("Player removal listener error:", error);
   });
-}
-
+  }
+  // PLAYER DATA SENT TO FIREBASE
 function currentPlayerData() {
   const data = {
     x: Number(player.position.x.toFixed(3)),
     y: Number(player.position.y.toFixed(3)),
     z: Number(player.position.z.toFixed(3)),
     rotationY: Number(player.rotation.y.toFixed(3)),
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
+    avatarType: selectedAvatarType
   };
-  data.avatarType = selectedAvatarType;
-
   if (displayName) data.name = displayName;
   return data;
 }
-
 async function publishPlayerState(force = false) {
   if (!joined || !myPlayerRef || writeInProgress) return;
-
   const now = Date.now();
-
   if (!force && now - lastNetworkUpdate < 140) return;
-
   lastNetworkUpdate = now;
   writeInProgress = true;
-
   try {
     await set(myPlayerRef, currentPlayerData());
   } catch (error) {
@@ -818,125 +910,93 @@ async function publishPlayerState(force = false) {
   } finally {
     writeInProgress = false;
   }
-  }
-  function explainJoinError(error) {
+}
+function explainJoinError(error) {
   console.error("Join error:", error);
-
   if (error && error.code === "auth/unauthorized-domain") {
     return "Firebase needs this website added to Authentication's Authorized domains.";
   }
-
-  if (error && (error.code === "PERMISSION_DENIED" ||
-      error.code === "database/permission-denied")) {
-    return "Firebase denied access. We'll check the Realtime Database rules.";
+  if (error && (error.code === "PERMISSION_DENIED" || error.code === "database/permission-denied")) {
+    return "Firebase denied access. Check the Realtime Database rules.";
   }
-
   if (error && error.code === "auth/network-request-failed") {
     return "Network connection failed. Check your internet and try again.";
   }
-
   return "Couldn't connect right now. Check your internet and try again.";
 }
 
+// ENTER THE WORLD
 async function enterWorld() {
   if (joined) return;
-
   joinButton.disabled = true;
   joinStatus.textContent = "Connecting to your world...";
   displayName = nameInput.value.trim().slice(0, 20);
-
   try {
     if (!auth || !database || !playersRef) {
       throw new Error("Firebase was not initialized.");
     }
-
     const credential = await signInAnonymously(auth);
     myUid = credential.user.uid;
     myPlayerRef = ref(database, `rooms/${ROOM_ID}/players/${myUid}`);
-
     await onDisconnect(myPlayerRef).remove();
     await set(myPlayerRef, currentPlayerData());
-
     joined = true;
     subscribeToOtherPlayers();
     updatePlayerStatus();
-
+    removeSelectionPreviews();
+    player.visible = true;
     joinScreen.style.display = "none";
     document.getElementById("message").style.display = "block";
-
-    if (window.matchMedia("(max-width: 800px)").matches) {
-      jumpButton.style.display = "flex";
-    }
-
+    const isMobile = window.matchMedia("(max-width: 800px)").matches;
+    jumpButton.style.display = isMobile ? "flex" : "none";
+    joystick.style.display = isMobile ? "block" : "none";
   } catch (error) {
     joinButton.disabled = false;
     joinStatus.textContent = explainJoinError(error);
   }
 }
-
 joinButton.addEventListener("click", enterWorld);
-
 nameInput.addEventListener("keydown", event => {
   if (event.key === "Enter") enterWorld();
 });
 
+// RESIZE HANDLING
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-
   if (joined) {
-    jumpButton.style.display =
-      window.matchMedia("(max-width: 800px)").matches ? "flex" : "none";
+    const isMobile = window.matchMedia("(max-width: 800px)").matches;
+    jumpButton.style.display = isMobile ? "flex" : "none";
+    joystick.style.display = isMobile ? "block" : "none";
   }
 });
-  const clock = new THREE.Clock();
 
+// MAIN GAME LOOP
+const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
-
   const delta = Math.min(clock.getDelta(), 0.05);
   const elapsed = clock.elapsedTime;
 
-  if (joined) {
-
+  if (!joined) {
+    malePreview.updateAnimation(false, false, elapsed);
+    femalePreview.updateAnimation(false, false, elapsed);
+  } else {
     // CAMERA-RELATIVE MOVEMENT
-    let forward =
-      (keys.w || keys.arrowup ? 1 : 0) -
-      (keys.s || keys.arrowdown ? 1 : 0) + stickY;
-
-    let strafe =
-      (keys.d || keys.arrowright ? 1 : 0) -
-      (keys.a || keys.arrowleft ? 1 : 0) + stickX;
-
+    let forward = (keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0) + stickY;
+    let strafe = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0) + stickX;
     const inputLength = Math.hypot(forward, strafe);
-
     if (inputLength > 1) {
       forward /= inputLength;
       strafe /= inputLength;
     }
-
     isMoving = inputLength > 0.06;
-
     if (isMoving) {
-      const moveX =
-        -Math.sin(cameraYaw) * forward +
-        Math.cos(cameraYaw) * strafe;
-
-      const moveZ =
-        -Math.cos(cameraYaw) * forward -
-        Math.sin(cameraYaw) * strafe;
-
-      player.position.x = THREE.MathUtils.clamp(
-        player.position.x + moveX * speed * delta,
-        -125, 125
-      );
-
-      player.position.z = THREE.MathUtils.clamp(
-        player.position.z + moveZ * speed * delta,
-        -125, 125
-      );
-
+      const moveX = -Math.sin(cameraYaw) * forward + Math.cos(cameraYaw) * strafe;
+      const moveZ = -Math.cos(cameraYaw) * forward - Math.sin(cameraYaw) * strafe;
+      player.position.x = THREE.MathUtils.clamp(player.position.x + moveX * speed * delta, -125, 125);
+      player.position.z = THREE.MathUtils.clamp(player.position.z + moveZ * speed * delta, -125, 125);
       player.rotation.y = Math.atan2(-moveX, -moveZ);
     }
 
@@ -945,149 +1005,83 @@ function animate() {
       verticalVelocity = jumpPower;
       grounded = false;
     }
-
     jumpRequested = false;
-
     if (!grounded) {
       verticalVelocity -= gravity * delta;
       player.position.y += verticalVelocity * delta;
-
       if (player.position.y <= 0) {
         player.position.y = 0;
         verticalVelocity = 0;
         grounded = true;
       }
     }
+    localCharacter.updateAnimation(isMoving, !grounded, elapsed);
 
-    // LOCAL CHARACTER ANIMATION
-    localCharacter.updateAnimation(
-      isMoving,
-      !grounded,
-      elapsed
-    );
-
-    // REMOTE PLAYER MOVEMENT AND JUMPING
+    // SMOOTH REMOTE PLAYER MOVEMENT
     const smoothing = 1 - Math.exp(-12 * delta);
-
     for (const remote of remotePlayers.values()) {
-
       const remoteWasMoving = Math.hypot(
         remote.targetX - remote.group.position.x,
         remote.targetZ - remote.group.position.z
       ) > 0.025;
-
-      remote.group.position.x +=
-        (remote.targetX - remote.group.position.x) * smoothing;
-
-      remote.group.position.y +=
-        (remote.targetY - remote.group.position.y) * smoothing;
-
-      remote.group.position.z +=
-        (remote.targetZ - remote.group.position.z) * smoothing;
-
+      remote.group.position.x += (remote.targetX - remote.group.position.x) * smoothing;
+      remote.group.position.y += (remote.targetY - remote.group.position.y) * smoothing;
+      remote.group.position.z += (remote.targetZ - remote.group.position.z) * smoothing;
       const angleDifference = Math.atan2(
         Math.sin(remote.targetRotationY - remote.group.rotation.y),
         Math.cos(remote.targetRotationY - remote.group.rotation.y)
       );
-
       remote.group.rotation.y += angleDifference * smoothing;
-
       remote.updateAnimation(
         remoteWasMoving,
         remote.targetY > 0.08 || remote.group.position.y > 0.08,
         elapsed
       );
     }
-
     publishPlayerState();
 
-  } else {
-    localCharacter.updateAnimation(false, false, elapsed);
-  }
-
-
- // CAMERA FOLLOW, ZOOM AND VERTICAL ROTATION
-
-cameraDistance = THREE.MathUtils.damp(
-  cameraDistance,
-  targetCameraDistance,
-  8,
-  delta
-);
-
-const firstPerson = cameraDistance <= 0.72;
-
-player.visible = !firstPerson;
-
-if (firstPerson) {
-
-  // FIRST PERSON CAMERA
-  const eyeX = player.position.x;
-  const eyeY = player.position.y + 2.12;
-  const eyeZ = player.position.z;
-
-  camera.position.set(eyeX, eyeY, eyeZ);
-
-  camera.lookAt(
-    eyeX - Math.sin(cameraYaw) * Math.cos(cameraPitch) * 10,
-    eyeY - Math.sin(cameraPitch) * 10,
-    eyeZ - Math.cos(cameraYaw) * Math.cos(cameraPitch) * 10
-  );
-
-} else {
-
-  // THIRD PERSON CAMERA
-  const horizontalDistance =
-    cameraDistance * Math.cos(cameraPitch);
-
-  const verticalOffset =
-    cameraDistance * Math.sin(cameraPitch);
-
-  camera.position.set(
-    player.position.x +
-      Math.sin(cameraYaw) * horizontalDistance,
-
-    Math.max(
-      0.25,
-      player.position.y + 1.4 + verticalOffset
-    ),
-
-    player.position.z +
-      Math.cos(cameraYaw) * horizontalDistance
-  );
-
-  camera.lookAt(
-    player.position.x,
-    player.position.y + 1.4,
-    player.position.z
-  );
-  }
-
-// Widen the field of view when zoomed out.
-const desiredFov = 65 +
-  THREE.MathUtils.clamp((cameraDistance - 10) / 16, 0, 1) * 15;
-
-const nextFov = THREE.MathUtils.damp(
-  camera.fov,
-  desiredFov,
-  5,
-  delta
-);
-
-if (Math.abs(nextFov - camera.fov) > 0.01) {
-  camera.fov = nextFov;
-  camera.updateProjectionMatrix();
+    // THIRD-PERSON / FIRST-PERSON CAMERA AND ZOOM
+    cameraDistance = THREE.MathUtils.damp(cameraDistance, targetCameraDistance, 8, delta);
+    const firstPerson = cameraDistance <= 0.72;
+    player.visible = !firstPerson;
+    if (firstPerson) {
+      const eyeX = player.position.x;
+      const eyeY = player.position.y + 2.12;
+      const eyeZ = player.position.z;
+      camera.position.set(eyeX, eyeY, eyeZ);
+      camera.lookAt(
+        eyeX - Math.sin(cameraYaw) * Math.cos(cameraPitch) * 10,
+        eyeY - Math.sin(cameraPitch) * 10,
+        eyeZ - Math.cos(cameraYaw) * Math.cos(cameraPitch) * 10
+      );
+    } else {
+      const horizontalDistance = cameraDistance * Math.cos(cameraPitch);
+      const verticalOffset = cameraDistance * Math.sin(cameraPitch);
+      camera.position.set(
+        player.position.x + Math.sin(cameraYaw) * horizontalDistance,
+        Math.max(0.25, player.position.y + 1.4 + verticalOffset),
+        player.position.z + Math.cos(cameraYaw) * horizontalDistance
+      );
+      camera.lookAt(player.position.x, player.position.y + 1.4, player.position.z);
+    }
+    const desiredFov = 65 + THREE.MathUtils.clamp((cameraDistance - 10) / 16, 0, 1) * 15;
+    const nextFov = THREE.MathUtils.damp(camera.fov, desiredFov, 5, delta);
+    if (Math.abs(nextFov - camera.fov) > 0.01) {
+      camera.fov = nextFov;
+      camera.updateProjectionMatrix();
+    }
   }
 
   renderer.render(scene, camera);
 }
 
+// START
 animate();
-
 loading.style.display = "none";
 joinScreen.style.display = "flex";
-joinStatus.textContent = "Your world is ready. Press Enter to join.";
-
+joinStatus.textContent = "Your world is ready. Choose an avatar, then enter.";
 </script>
 </body>
 </html>
+
+  
