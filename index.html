@@ -774,15 +774,7 @@ function animate() {
         -125, 125
       );
 
-      const desiredRotation = Math.atan2(-moveX, -moveZ);
-
-      const angleDifference = Math.atan2(
-        Math.sin(desiredRotation - player.rotation.y),
-        Math.cos(desiredRotation - player.rotation.y)
-      );
-
-      player.rotation.y +=
-        angleDifference * (1 - Math.exp(-14 * delta));
+      player.rotation.y = Math.atan2(-moveX, -moveZ);
     }
 
     // JUMPING AND GRAVITY
