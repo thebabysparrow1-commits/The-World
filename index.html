@@ -280,7 +280,9 @@ for (let i = 0; i < 28; i++) {
 }
 
 // DEFAULT CHARACTER: the same clean, rounded block-style avatar for every player.
-function createCharacter() {
+function createCharacter(type = "male") {
+  const isFemale = type === "female";
+
   const group = new THREE.Group();
   const animatedBody = new THREE.Group();
   group.add(animatedBody);
@@ -305,8 +307,36 @@ function createCharacter() {
 
   // Neck and softly rounded torso.
   roundedPart(animatedBody, 0.24, 0.22, 0.24, skinMat, { x: 0, y: 1.61, z: 0 }, 0.06);
-  roundedPart(animatedBody, 0.88, 0.91, 0.48, shirtMat, { x: 0, y: 1.18, z: 0 }, 0.10);
+  roundedPart(
+  animatedBody,
+  isFemale ? 0.84 : 0.96,
+  0.91,
+  isFemale ? 0.48 : 0.52,
+  shirtMat,
+  { x: 0, y: 1.18, z: 0 },
+  0.10
+);
 
+if (isFemale) {
+  // Wider hip shape under the default clothing
+  roundedPart(
+    animatedBody,
+    0.98, 0.32, 0.48,
+    pantsMat,
+    { x: 0, y: 0.82, z: 0 },
+    0.09
+  );
+
+  // Subtle chest contour under the default shirt
+  const chestShape = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 12, 10),
+    shirtMat
+  );
+
+  chestShape.scale.set(0.68, 0.40, 0.18);
+  chestShape.position.set(0, 1.43, -0.25);
+  animatedBody.add(chestShape);
+  }
   // Head: a rounded cube, deliberately left without hair or accessories.
   roundedPart(animatedBody, 0.78, 0.76, 0.72, skinMat, { x: 0, y: 2.08, z: 0 }, 0.16);
 
@@ -327,31 +357,50 @@ function createCharacter() {
   const smile = new THREE.Mesh(new THREE.TubeGeometry(smileCurve, 12, 0.012, 6, false), mouthMat);
   animatedBody.add(smile);
 
-  // Pivoted arms allow natural swinging instead of sliding block limbs.
-  const leftArm = new THREE.Group();
-  leftArm.position.set(-0.53, 1.53, 0);
-  animatedBody.add(leftArm);
-  roundedPart(leftArm, 0.30, 0.72, 0.36, skinMat, { x: 0, y: -0.34, z: 0 }, 0.075);
-  roundedPart(leftArm, 0.25, 0.23, 0.30, skinMat, { x: 0, y: -0.76, z: -0.015 }, 0.07);
+// Pivoted arms
+const armWidth = isFemale ? 0.27 : 0.30;
+const armOffset = isFemale ? 0.49 : 0.53;
 
-  const rightArm = new THREE.Group();
-  rightArm.position.set(0.53, 1.53, 0);
-  animatedBody.add(rightArm);
-  roundedPart(rightArm, 0.30, 0.72, 0.36, skinMat, { x: 0, y: -0.34, z: 0 }, 0.075);
-  roundedPart(rightArm, 0.25, 0.23, 0.30, skinMat, { x: 0, y: -0.76, z: -0.015 }, 0.07);
+const leftArm = new THREE.Group();
+leftArm.position.set(-armOffset, 1.53, 0);
+animatedBody.add(leftArm);
 
-  // Pivoted legs with simple light shoes.
-  const leftLeg = new THREE.Group();
-  leftLeg.position.set(-0.23, 0.77, 0);
-  animatedBody.add(leftLeg);
-  roundedPart(leftLeg, 0.37, 0.70, 0.40, pantsMat, { x: 0, y: -0.34, z: 0 }, 0.065);
-  roundedPart(leftLeg, 0.39, 0.20, 0.51, shoeMat, { x: 0, y: -0.70, z: -0.055 }, 0.065);
+roundedPart(leftArm, armWidth, 0.72, 0.36, skinMat,
+  { x: 0, y: -0.34, z: 0 }, 0.075);
+roundedPart(leftArm, 0.25, 0.23, 0.30, skinMat,
+  { x: 0, y: -0.76, z: -0.015 }, 0.07);
 
-  const rightLeg = new THREE.Group();
-  rightLeg.position.set(0.23, 0.77, 0);
-  animatedBody.add(rightLeg);
-  roundedPart(rightLeg, 0.37, 0.70, 0.40, pantsMat, { x: 0, y: -0.34, z: 0 }, 0.065);
-  roundedPart(rightLeg, 0.39, 0.20, 0.51, shoeMat, { x: 0, y: -0.70, z: -0.055 }, 0.065);
+const rightArm = new THREE.Group();
+rightArm.position.set(armOffset, 1.53, 0);
+animatedBody.add(rightArm);
+
+roundedPart(rightArm, armWidth, 0.72, 0.36, skinMat,
+  { x: 0, y: -0.34, z: 0 }, 0.075);
+roundedPart(rightArm, 0.25, 0.23, 0.30, skinMat,
+  { x: 0, y: -0.76, z: -0.015 }, 0.07);
+
+
+// Pivoted legs with simple light shoes
+const legWidth = isFemale ? 0.41 : 0.37;
+const legOffset = isFemale ? 0.26 : 0.23;
+
+const leftLeg = new THREE.Group();
+leftLeg.position.set(-legOffset, 0.77, 0);
+animatedBody.add(leftLeg);
+
+roundedPart(leftLeg, legWidth, 0.70, 0.40, pantsMat,
+  { x: 0, y: -0.34, z: 0 }, 0.065);
+roundedPart(leftLeg, 0.39, 0.20, 0.51, shoeMat,
+  { x: 0, y: -0.70, z: -0.055 }, 0.065);
+
+const rightLeg = new THREE.Group();
+rightLeg.position.set(legOffset, 0.77, 0);
+animatedBody.add(rightLeg);
+
+roundedPart(rightLeg, legWidth, 0.70, 0.40, pantsMat,
+  { x: 0, y: -0.34, z: 0 }, 0.065);
+roundedPart(rightLeg, 0.39, 0.20, 0.51, shoeMat,
+  { x: 0, y: -0.70, z: -0.055 }, 0.065);
 
   // Floating name label. A blank name hides it.
   const labelCanvas = document.createElement("canvas");
@@ -420,11 +469,16 @@ function createCharacter() {
 }
 
 // LOCAL PLAYER
-const localCharacter = createCharacter();
+let selectedAvatarType =
+  new URLSearchParams(window.location.search).get("avatar") === "female"
+    ? "female"
+    : "male";
+
+const localCharacter = createCharacter(selectedAvatarType);
 const player = localCharacter.group;
 scene.add(player);
 player.position.set(0, 0, 7);
-
+  
 // MOVEMENT AND JUMP SETTINGS
 const keys = {};
 let stickX = 0;
@@ -460,16 +514,7 @@ window.addEventListener("blur", () => {
   jumpRequested = false;
 });
 
-// MOBILE JOYSTICK
-const joystick = document.getElementById("joystick");
-const knob = document.getElementById("knob");
-let stickPointer = null;
-function moveStick(event) {
-  const rect = joystick.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  let dx = event.clientX - centerX;
-  let dy = event.clientY - centerY;
+
   const maxDistance = 38;
   const distance = Math.hypot(dx, dy);
   if (distance > maxDistance) {
@@ -667,7 +712,9 @@ function upsertRemotePlayer(uid, data) {
   let remote = remotePlayers.get(uid);
 
   if (!remote) {
-    const character = createCharacter();
+    const character = createCharacter(
+  data.avatarType === "female" ? "female" : "male"
+);
     scene.add(character.group);
     character.group.position.set(data.x, safeY, data.z);
     character.group.rotation.y = data.rotationY;
@@ -747,6 +794,7 @@ function currentPlayerData() {
     rotationY: Number(player.rotation.y.toFixed(3)),
     updatedAt: Date.now()
   };
+  data.avatarType = selectedAvatarType;
 
   if (displayName) data.name = displayName;
   return data;
